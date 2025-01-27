@@ -1,0 +1,303 @@
+import string
+import regex as re
+import numpy as np
+import pandas as pd
+from underthesea import word_tokenize, text_normalize
+
+class VietnameseTextPreprocessor:
+    def __init__(self):
+        self.uniChars = "àáảãạâầấẩẫậăằắẳẵặèéẻẽẹêềếểễệđìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵÀÁẢÃẠÂẦẤẨẪẬĂẰẮẲẴẶÈÉẺẼẸÊỀẾỂỄỆĐÌÍỈĨỊÒÓỎÕỌÔỒỐỔỖỘƠỜỚỞỠỢÙÚỦŨỤƯỪỨỬỮỰỲÝỶỸỴÂĂĐÔƠƯ"
+        self.unsignChars = "aaaaaaaaaaaaaaaaaeeeeeeeeeeediiiiiooooooooooooooooouuuuuuuuuuuyyyyyAAAAAAAAAAAAAAAAAEEEEEEEEEEEDIIIOOOOOOOOOOOOOOOOOOOUUUUUUUUUUUYYYYYAADOOU"
+        self.dicchar = self.loaddicchar()
+        self.bang_nguyen_am = [
+            ['a', 'à', 'á', 'ả', 'ã', 'ạ'],
+            ['ă', 'ằ', 'ắ', 'ẳ', 'ẵ', 'ặ'],
+            ['â', 'ầ', 'ấ', 'ẩ', 'ẫ', 'ậ'],
+            ['e', 'è', 'é', 'ẻ', 'ẽ', 'ẹ'],
+            ['ê', 'ề', 'ế', 'ể', 'ễ', 'ệ'],
+            ['i', 'ì', 'í', 'ỉ', 'ĩ', 'ị'],
+            ['o', 'ò', 'ó', 'ỏ', 'õ', 'ọ'],
+            ['ô', 'ồ', 'ố', 'ổ', 'ỗ', 'ộ'],
+            ['ơ', 'ờ', 'ớ', 'ở', 'ỡ', 'ợ'],
+            ['u', 'ù', 'ú', 'ủ', 'ũ', 'ụ'],
+            ['ư', 'ừ', 'ứ', 'ử', 'ữ', 'ự'],
+            ['y', 'ỳ', 'ý', 'ỷ', 'ỹ', 'ỵ'],
+        ]
+        self.nguyen_am_to_ids = {}
+        for idx, vowel_group in enumerate(self.bang_nguyen_am):
+            for jdx, vowel in enumerate(vowel_group):
+                self.nguyen_am_to_ids[vowel] = (idx, jdx)
+        self.stopwords_small = self.load_stopwords()
+
+    def loaddicchar(self):
+        dic = {}
+        char1252 = 'à|á|ả|ã|ạ|ầ|ấ|ẩ|ẫ|ậ|ằ|ắ|ẳ|ẵ|ặ|è|é|ẻ|ẽ|ẹ|ề|ế|ể|ễ|ệ|ì|í|ỉ|ĩ|ị|ò|ó|ỏ|õ|ọ|ồ|ố|ổ|ỗ|ộ|ờ|ớ|ở|ỡ|ợ|ù|ú|ủ|ũ|ụ|ừ|ứ|ử|ữ|ự|ỳ|ý|ỷ|ỹ|ỵ|À|Á|Ả|Ã|Ạ|Ầ|Ấ|Ẩ|Ẫ|Ậ|Ằ|Ắ|Ẳ|Ẵ|Ặ|È|É|Ẻ|Ẽ|Ẹ|Ề|Ế|Ể|Ễ|Ệ|Ì|Í|Ỉ|Ĩ|Ị|Ò|Ó|Ỏ|Õ|Ọ|Ồ|Ố|Ổ|Ỗ|Ộ|Ờ|Ớ|Ở|Ỡ|Ợ|Ù|Ú|Ủ|Ũ|Ụ|Ừ|Ứ|Ử|Ữ|Ự|Ỳ|Ý|Ỷ|Ỹ|Ỵ'.split('|')
+        charutf8 = "à|á|ả|ã|ạ|ầ|ấ|ẩ|ẫ|ậ|ằ|ắ|ẳ|ẵ|ặ|è|é|ẻ|ẽ|ẹ|ề|ế|ể|ễ|ệ|ì|í|ỉ|ĩ|ị|ò|ó|ỏ|õ|ọ|ồ|ố|ổ|ỗ|ộ|ờ|ớ|ở|ỡ|ợ|ù|ú|ủ|ũ|ụ|ừ|ứ|ử|ữ|ự|ỳ|ý|ỷ|ỹ|ỵ|À|Á|Ả|Ã|Ạ|Ầ|Ấ|Ẩ|Ẫ|Ậ|Ằ|Ắ|Ẳ|Ẵ|Ặ|È|É|Ẻ|Ẽ|Ẹ|Ề|Ế|Ể|Ễ|Ệ|Ì|Í|Ỉ|Ĩ|Ị|Ò|Ó|Ỏ|Õ|Ọ|Ồ|Ố|Ổ|Ỗ|Ộ|Ờ|Ớ|Ở|Ỡ|Ợ|Ù|Ú|Ủ|Ũ|Ụ|Ừ|Ứ|Ử|Ữ|Ự|Ỳ|Ý|Ỷ|Ỹ|Ỵ".split('|')
+        for i in range(len(char1252)):
+            dic[char1252[i]] = charutf8[i]
+        return dic
+
+    def covert_unicode(self, txt):
+        return re.sub(
+            r'à|á|ả|ã|ạ|ầ|ấ|ẩ|ẫ|ậ|ằ|ắ|ẳ|ẵ|ặ|è|é|ẻ|ẽ|ẹ|ề|ế|ể|ễ|ệ|ì|í|ỉ|ĩ|ị|ò|ó|ỏ|õ|ọ|ồ|ố|ổ|ỗ|ộ|ờ|ớ|ở|ỡ|ợ|ù|ú|ủ|ũ|ụ|ừ|ứ|ử|ữ|ự|ỳ|ý|ỷ|ỹ|ỵ|À|Á|Ả|Ã|Ạ|Ầ|Ấ|Ẩ|Ẫ|Ậ|Ằ|Ắ|Ẳ|Ẵ|Ặ|È|É|Ẻ|Ẽ|Ẹ|Ề|Ế|Ể|Ễ|Ệ|Ì|Í|Ỉ|Ĩ|Ị|Ò|Ó|Ỏ|Õ|Ọ|Ồ|Ố|Ổ|Ỗ|Ộ|Ờ|Ớ|Ở|Ỡ|Ợ|Ù|Ú|Ủ|Ũ|Ụ|Ừ|Ứ|Ử|Ữ|Ự|Ỳ|Ý|Ỷ|Ỹ|Ỵ',
+            lambda x: self.dicchar[x.group()], txt)
+
+    def is_valid_vietnam_word(self, word):
+        chars = list(word)
+        nguyen_am_index = -1
+        for index, char in enumerate(chars):
+            x, y = self.nguyen_am_to_ids.get(char, (-1, -1))
+            if x != -1:
+                if nguyen_am_index == -1:
+                    nguyen_am_index = index
+                else:
+                    if index - nguyen_am_index != 1:
+                        return False
+                    nguyen_am_index = index
+        return True
+
+    def chuan_hoa_dau_tieng_viet(self, word):
+        if not self.is_valid_vietnam_word(word):
+            return word
+        chars = list(word)
+        dau_cau = 0
+        nguyen_am_index = []
+        qu_or_gi = False
+        for index, char in enumerate(chars):
+            x, y = self.nguyen_am_to_ids.get(char, (-1, -1))
+            if x == -1:
+                continue
+            elif x == 9:  # check qu
+                if index != 0 and chars[index - 1] == 'q':
+                    chars[index] = 'u'
+                    qu_or_gi = True
+            elif x == 5:  # check gi
+                if index != 0 and chars[index - 1] == 'g':
+                    chars[index] = 'i'
+                    qu_or_gi = True
+            if y != 0:
+                dau_cau = y
+                chars[index] = self.bang_nguyen_am[x][0]
+                if not qu_or_gi or index != 1:
+                    nguyen_am_index.append(index)
+        if len(nguyen_am_index) < 2:
+            if qu_or_gi:
+                if len(chars) == 2:
+                    x, y = self.nguyen_am_to_ids.get(chars[1], (-1, -1))
+                    if x != -1:
+                        chars[1] = self.bang_nguyen_am[x][dau_cau]
+                else:
+                    x, y = self.nguyen_am_to_ids.get(chars[2], (-1, -1))
+                    if x != -1:
+                        chars[2] = self.bang_nguyen_am[x][dau_cau]
+                    else:
+                        chars[1] = self.bang_nguyen_am[5][dau_cau] if chars[1] == 'i' else self.bang_nguyen_am[9][dau_cau]
+                return ''.join(chars)
+            return word
+        for index in nguyen_am_index:
+            x, y = self.nguyen_am_to_ids.get(chars[index], (-1, -1))
+            if x == 4 or x == 8:  # Example indices for specific vowels like 'ê', 'ơ'
+                chars[index] = self.bang_nguyen_am[x][dau_cau]
+        if len(nguyen_am_index) == 2:
+            if nguyen_am_index[-1] == len(chars) - 1:
+                x, y = self.nguyen_am_to_ids.get(chars[nguyen_am_index[0]], (-1, -1))
+                if x != -1:
+                    chars[nguyen_am_index[0]] = self.bang_nguyen_am[x][dau_cau]
+            else:
+                x, y = self.nguyen_am_to_ids.get(chars[nguyen_am_index[1]], (-1, -1))
+                if x != -1:
+                    chars[nguyen_am_index[1]] = self.bang_nguyen_am[x][dau_cau]
+        else:
+            x, y = self.nguyen_am_to_ids.get(chars[nguyen_am_index[1]], (-1, -1))
+            if x != -1:
+                chars[nguyen_am_index[1]] = self.bang_nguyen_am[x][dau_cau]
+        return ''.join(chars)
+
+    def chuan_hoa_dau_cau_tieng_viet(self, sentence):
+        sentence = sentence.lower()
+        words = sentence.split()
+        for index, word in enumerate(words):
+            cw = re.sub(r'(^\p{P}*)([\p{L}]+)(\p{P}*$)', r'\1/\2/\3', word).split('/')
+            if len(cw) == 3:
+                cw[1] = self.chuan_hoa_dau_tieng_viet(cw[1])
+                words[index] = ''.join(cw)
+        return ' '.join(words)
+
+    def load_stopwords(self):
+        filename = 'vietnamese-stopwords.csv'
+        data = pd.read_csv(filename, names=['word'])
+        list_stopwords = data['word'].tolist()
+        with open('stopwords-vi_news.txt', 'r', encoding='utf-8') as file:
+            stopwords_small = file.readlines()
+        stopwords_small = [line.strip().replace(" ", "_") for line in stopwords_small]
+        list_rare_words_1 = [
+            'fraction', 'altera', 'quad', 'cnpm', 'kaydotvn', 'daadotuitdotedudotvn', 'bohm', 'dotnet',
+            'visual studio code', 'visual studio', 'visual code', 'visual', 'mutton quad', 'dreamweaver',
+            'vertical fragmentation', 'i-ta-li-a', 'đbcl', 'crt', 'javabeans', 'if', 'for', 'while',
+            'struct', 'pl', 'windows phone', 'pm', 'assembly', 'scrum_project', 'scrum project',
+            'css', 'jquery', 'vector', 'gb', 'ram', 'ram', '...', 'codefun', 'egov', 'java', 'vmware',
+            'placement', 'fork', 'round robin', 'patin', 'pattern', 'serverside', 'dotnet', 'c++',
+            'javascript', 'ch', 'uit khoa', 'proteus', 'console', 'form', 'vật lý học', 'aep',
+            'servlet', 'skype', 'doubledot', 'poster', 'everything', 'amp', 'app', 'seo', 'app',
+            'progressive web', 'xim', 'win server', 'đối với', 'p', 's', 'p s', 'dropbox', 'bạn',
+            'cplusplus', 'socket', 'sub', 'switch', 'tôi', 'em', 'các em', 'tụi em', 'chúng em', 'các bạn', 'tụi em', 'chúng em'
+            'severside', 'network programing with csharp', 'dfd', 'naives bayes', 'naive', 'bayes', 'cs', 'js', 'max', 'elg', 'fix', 'proxy',
+            'hub', 'bridge','switch', 'windows', 'turnitindotcom', 'extensive reading', 'reading', 'extensive', 'search', 'quick', 'file header','paper',
+            'directx', 'windows', 'linux', 'vote', 'itdotf', 'router', 'silverlight', 'đa luồng', 'crack', 'wrede' ,'dbpedia','ontology', 'tmf', 'vhdl',
+            'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh'
+        ]
+        stopwords_small = [line.strip().replace(" ", "_") for line in stopwords_small]
+        stopwords_small.append('dot')
+        stopwords_small.append('giảng_viên')
+        for item in list_rare_words_1:
+            stopwords_small.append(item)
+        return stopwords_small
+
+    def preprocess_text_vietnamese_to_tokens(self, text, isReturnTokens=True):
+        text = self.covert_unicode(text)
+        text = self.chuan_hoa_dau_cau_tieng_viet(text)
+        text = text.lower()
+        mapping_dict = {
+            "thầy giáo": "giảng viên",
+            "cô giáo": "giảng viên",
+            "thầy": "giảng viên",
+            "cô": "giảng viên",
+            "giáo viên": "giảng viên",
+            'vói': 'với',
+            'giời': 'giờ',
+            'nhiệt hình': 'nhiệt tình',
+            'side': 'slide',
+            'tân tình': 'tận tình',
+            'teacher': 'giảng viên',
+            'sadcolon': 'colonsad',
+            'vi dụ': 'ví dụ',
+            'easy': 'dễ',
+            'so vời': 'so với',
+            'tâp': 'tập',
+            'av': 'tiếng anh',
+            'nhannh': 'nhanh',
+            'h': 'giờ',
+            'đc': 'được',
+            'dc': 'được',
+            'smilesmile': 'smile',
+            'tron': 'trong',
+            'thướng': 'hướng',
+            'nghung': 'nhưng',
+            'chon': 'chọn',
+            'them': 'thêm',
+            'day': 'dạy',
+            'midterm': 'giữa kỳ',
+            'vi': 'vì',
+            'quýêt': 'quyết',
+            'teamwork': 'làm việc nhóm',
+            'over time': 'quá giờ',
+            'overtime': 'quá giờ',
+            'ot': 'quá giờ',
+            'outcome': 'mục tiêu',
+            'basic': 'cơ bản',
+            'check': 'kiểm tra',
+            'gmail': 'email',
+            'mail': 'email',
+            'teen': 'trẻ',
+            'style': 'phong cách',
+            'topic': 'chủ đề',
+            'file': 'tài liệu',
+            'slides': 'tài liệu',
+            'slide': 'tài liệu',
+            'giáo trình': 'tài liệu',
+            'slile': 'tài liệu',
+            'silde': 'tài liệu',
+            'web':'website',
+            'online': 'website',
+            'nope': 'không',
+            'class': 'lớp học',
+            'fitted': 'phù hợp',
+            'chair': 'ghế',
+            'table': 'bàn',
+            'grammar': 'ngữ pháp',
+            'speaking': 'kỹ năng nói',
+            'listening': 'kỹ năng nghe',
+            'listenning': 'kỹ năng nghe',
+            'reading': 'kỹ năng đọc',
+            'good': 'tốt',
+            'english': 'tiếng anh',
+            'bad': 'tệ',
+            'feedback': 'phản hồi',
+            'elab': 'lab',
+            'group':'nhóm',
+            'mic': 'microphone',
+            'debate': 'thảo luận',
+            'test': 'kiểm tra',
+            'thưc': 'thực',
+            'courses': 'khóa học',
+            'funny': 'vui vẻ',
+            'internet': 'mạng',
+            'perfect': 'hoàn hảo',
+            'quoa': 'qua',
+            'thanks': 'cảm ơn',
+            'thankss': 'cảm ơn',
+            'ok': 'ổn',
+            'sư phạm': 'giảng dạy'
+        }
+        for original, replacement in mapping_dict.items():
+            pattern = r'\b' + re.escape(original) + r'\b'
+            text = re.sub(pattern, replacement, text)
+        text = text.translate(str.maketrans('', '', string.punctuation))
+        text = re.sub(r'\d+', '', text)
+        text = text.strip()
+        text = text_normalize(text)
+        emoji_pattern = re.compile(
+            "["
+            "\U0001F600-\U0001F64F"  # emoticons
+            "\U0001F300-\U0001F5FF"  # symbols & pictographs
+            "\U0001F680-\U0001F6FF"  # transport & map symbols
+            "\U0001F1E0-\U0001F1FF"  # flags
+            "\U00002500-\U00002BEF"  # Chinese characters
+            "\U00002702-\U000027B0"
+            "\U00002702-\U000027B0"
+            "\U000024C2-\U0001F251"
+            "\U0001f926-\U0001f937"
+            "\U00010000-\U0010ffff"
+            "\u2640-\u2642"
+            "\u2600-\u2B55"
+            "\u200d"
+            "\u23cf"
+            "\u23e9"
+            "\u231a"
+            "\ufe0f"  # dingbats
+            "\u3030"
+            "]+",
+            flags=re.UNICODE
+        )
+        text = emoji_pattern.sub(r'', text)
+        text = re.sub(r'\bcolon(\w+)\b', r'\1', text)
+        text = re.sub(r'\bdoubledot(\w+)\b', r'\1', text)
+        prefixes_to_remove = ['wzjwz', 'wwzjwz', 'dot']
+        for prefix in prefixes_to_remove:
+            text = re.sub(r'\b' + re.escape(prefix) + r'\w*\b', '', text)
+        list_rare_words = [
+            'fraction', 'altera', 'quad', 'cnpm', 'kaydotvn', 'daadotuitdotedudotvn', 'bohm', 'dotnet',
+            'visual studio code', 'visual studio', 'visual code', 'visual', 'mutton quad', 'dreamweaver',
+            'vertical fragmentation', 'i-ta-li-a', 'đbcl', 'crt', 'javabeans', 'if', 'for', 'while',
+            'struct', 'pl', 'windows phone', 'pm', 'assembly', 'scrum_project', 'scrum project',
+            'css', 'jquery', 'vector', 'gb', 'ram', 'ram', '...', 'codefun', 'egov', 'java', 'vmware',
+            'placement', 'fork', 'round robin', 'patin', 'pattern', 'serverside', 'dotnet', 'c++',
+            'javascript', 'ch', 'uit khoa', 'proteus', 'console', 'form', 'vật lý học', 'aep',
+            'servlet', 'skype', 'doubledot', 'poster', 'everything', 'amp', 'app', 'seo', 'app',
+            'progressive web', 'xim', 'win server', 'đối với', 'p', 's', 'p s', 'dropbox', 'bạn',
+            'cplusplus', 'socket', 'sub', 'switch', 'tôi', 'em', 'các em', 'tụi em', 'chúng em', 'các bạn', 'tụi em', 'chúng em'
+            'severside', 'network programing with csharp', 'dfd', 'naives bayes', 'naive', 'bayes', 'cs', 'js', 'max', 'elg', 'fix', 'proxy',
+            'hub', 'bridge','switch', 'windows', 'turnitindotcom', 'extensive reading', 'reading', 'extensive', 'search', 'quick', 'file header','paper',
+            'directx', 'windows', 'linux', 'vote', 'itdotf', 'router', 'silverlight', 'đa luồng', 'crack', 'wrede' ,'dbpedia','ontology', 'tmf', 'vhdl',
+            'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh'
+        ]
+        rarewords_pattern = r'\b(?:' + '|'.join(re.escape(word) for word in list_rare_words) + r')\b'
+        text = re.sub(rarewords_pattern, '', text)
+        tokens = word_tokenize(text, format='text').split()
+        tokens = [token for token in tokens if token not in self.stopwords_small]
+        tokens = [token for token in tokens if token.strip()]
+        text = ' '.join(tokens)
+        tokens = word_tokenize(text, format='text').split()
+        if not isReturnTokens:
+            return ' '.join(tokens)
+        return tokens
