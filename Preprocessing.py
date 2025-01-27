@@ -1,8 +1,11 @@
+
 import string
 import regex as re
 import numpy as np
 import pandas as pd
 from underthesea import word_tokenize, text_normalize
+
+
 
 class VietnameseTextPreprocessor:
     def __init__(self):
@@ -124,9 +127,6 @@ class VietnameseTextPreprocessor:
         return ' '.join(words)
 
     def load_stopwords(self):
-        filename = 'vietnamese-stopwords.csv'
-        data = pd.read_csv(filename, names=['word'])
-        list_stopwords = data['word'].tolist()
         with open('stopwords-vi_news.txt', 'r', encoding='utf-8') as file:
             stopwords_small = file.readlines()
         stopwords_small = [line.strip().replace(" ", "_") for line in stopwords_small]
@@ -144,7 +144,8 @@ class VietnameseTextPreprocessor:
             'severside', 'network programing with csharp', 'dfd', 'naives bayes', 'naive', 'bayes', 'cs', 'js', 'max', 'elg', 'fix', 'proxy',
             'hub', 'bridge','switch', 'windows', 'turnitindotcom', 'extensive reading', 'reading', 'extensive', 'search', 'quick', 'file header','paper',
             'directx', 'windows', 'linux', 'vote', 'itdotf', 'router', 'silverlight', 'đa luồng', 'crack', 'wrede' ,'dbpedia','ontology', 'tmf', 'vhdl',
-            'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh'
+            'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh', 'moodle',
+            'sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'trang', 'stack', 'queue','bảng băm', 'chính trị'
         ]
         stopwords_small = [line.strip().replace(" ", "_") for line in stopwords_small]
         stopwords_small.append('dot')
@@ -289,7 +290,8 @@ class VietnameseTextPreprocessor:
             'severside', 'network programing with csharp', 'dfd', 'naives bayes', 'naive', 'bayes', 'cs', 'js', 'max', 'elg', 'fix', 'proxy',
             'hub', 'bridge','switch', 'windows', 'turnitindotcom', 'extensive reading', 'reading', 'extensive', 'search', 'quick', 'file header','paper',
             'directx', 'windows', 'linux', 'vote', 'itdotf', 'router', 'silverlight', 'đa luồng', 'crack', 'wrede' ,'dbpedia','ontology', 'tmf', 'vhdl',
-            'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh'
+            'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh', 'moodle',
+            'sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'trang','stack', 'queue','bảng băm', 'chính trị'
         ]
         rarewords_pattern = r'\b(?:' + '|'.join(re.escape(word) for word in list_rare_words) + r')\b'
         text = re.sub(rarewords_pattern, '', text)
@@ -301,3 +303,5 @@ class VietnameseTextPreprocessor:
         if not isReturnTokens:
             return ' '.join(tokens)
         return tokens
+    
+    

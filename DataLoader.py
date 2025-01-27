@@ -1,32 +1,71 @@
 import pandas as pd
-
-train_data = pd.read_csv('../UIT-VSFC_train_oversampling_20.csv')
-dev_data = pd.read_csv('../uit-vsfc-cleaned-v4/UIT-VSFC_dev_cleaned.csv')
-test_data = pd.read_csv('../uit-vsfc-cleaned-v4/UIT-VSFC_test_cleaned.csv')
-
-train_data = train_data.dropna()
-test_data = test_data.dropna()
-dev_data = dev_data.dropna()
-
-train_data.info()
-test_data.info()
-dev_data.info()
-
 import numpy as np
+import tensorflow as tf
 
-# Kết hợp dữ liệu
-# data_full = pd.concat([train_data, dev_data, test_data], ignore_index=True)
 
-# Tự động chuyển giá trị không hợp lệ thành NaN
-train_data.iloc[:, 1] = pd.to_numeric(train_data.iloc[:, 1], errors='coerce')
+class DataLoader:
+    def __init__(self, train_path, dev_path, test_path):
+        self.train_path = train_path
+        self.dev_path = dev_path
+        self.test_path = test_path
+        self.train_data = None
+        self.dev_data = None
+        self.test_data = None
+        self.label_tf_train = None
+        self.label_tf_dev = None
+        self.label_tf_test = None
+        self.train_data_text = None
+        self.dev_data_text = None
+        self.test_data_text = None
 
-# Loại bỏ các hàng chứa NaN trong cả data_full
-train_data = train_data.dropna(subset=[train_data.columns[1]])
+    def load_data(self):
+        # Load data from CSV files
+        self.train_data = pd.read_csv(self.train_path)
+        self.dev_data = pd.read_csv(self.dev_path)
+        self.test_data = pd.read_csv(self.test_path)
 
-# Chuyển cột cuối cùng thành kiểu số nguyên và mảng 1 chiều
-label_idx_train = train_data.iloc[:, 1].astype(int).to_numpy()
+        # Drop rows with NaN values
+        self.train_data = self.train_data.dropna()
+        self.dev_data = self.dev_data.dropna()
+        self.test_data = self.test_data.dropna()
 
-print(label_idx_train)
+        # Display info
+        self.train_data.info()
+        self.dev_data.info()
+        self.test_data.info()
 
-# Chuyển đổi nhãn thành định dạng one-hot encoding
-label_tf_train = tf_keras.utils.to_categorical(label_idx_train, num_classes=3, dtype='float32')
+    def preprocess_labels(self):
+        # Convert labels to numeric and handle errors
+        self.train_data.iloc[:, 1] = pd.to_numeric(self.train_data.iloc[:, 1], errors='coerce')
+        self.train_data = self.train_data.dropna(subset=[self.train_data.columns[1]])
+        label_idx_train = self.train_data.iloc[:, 1].astype(int).to_numpy()
+        self.label_tf_train = tf.keras.utils.to_categorical(label_idx_train, num_classes=3)
+
+        self.test_data.iloc[:, 1] = pd.to_numeric(self.test_data.iloc[:, 1], errors='coerce')
+        self.test_data = self.test_data.dropna(subset=[self.test_data.columns[1]])
+        label_idx_test = self.test_data.iloc[:, 1].astype(int).to_numpy()
+        self.label_tf_test = tf.keras.utils.to_categorical(label_idx_test, num_classes=3)
+
+        self.dev_data.iloc[:, 1] = pd.to_numeric(self.dev_data.iloc[:, 1], errors='coerce')
+        self.dev_data = self.dev_data.dropna(subset=[self.dev_data.columns[1]])
+        label_idx_dev = self.dev_data.iloc[:, 1].astype(int).to_numpy()
+        self.label_tf_dev = tf.keras.utils.to_categorical(label_idx_dev, num_classes=3)
+
+    def extract_text_data(self):
+        # Extract text data
+        self.train_data_text = self.train_data.iloc[:, 0].values.tolist()
+        self.test_data_text = self.test_data.iloc[:, 0].values.tolist()
+        self.dev_data_text = self.dev_data.iloc[:, 0].values.tolist()
+
+    def get_processed_data(self):
+        # Return processed data
+        self.extract_text_data()
+        self.preprocess_labels()
+        return {
+            'train_text': self.train_data_text,
+            'train_labels': self.label_tf_train,
+            'dev_text': self.dev_data_text,
+            'dev_labels': self.label_tf_dev,
+            'test_text': self.test_data_text,
+            'test_labels': self.label_tf_test
+        }
