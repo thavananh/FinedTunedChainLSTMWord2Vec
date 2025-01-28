@@ -23,13 +23,19 @@ def save_to_csv(text_list, label_list, file_name):
 def main():
     # Thiết lập các tham số dòng lệnh
     parser = argparse.ArgumentParser(description='Train model for Vietnamese text classification.')
-    parser.add_argument('--train_path', type=str, required=True, help='Đường dẫn đến tập train')
-    parser.add_argument('--dev_path', type=str, required=True, help='Đường dẫn đến tập dev')
-    parser.add_argument('--test_path', type=str, required=True, help='Đường dẫn đến tập test')
-    parser.add_argument('--stopwords_path', type=str, required=True, help='Đường dẫn đến file stopwords')
-    parser.add_argument('--use_dash', action='store_true', help='Có sử dụng dấu gạch ngang trong tiền xử lý không')
+    parser.add_argument('--train_path', type=str, required=True, help='Training data path')
+    parser.add_argument('--dev_path', type=str, required=True, help='Development data path')
+    parser.add_argument('--test_path', type=str, required=True, help='Testing data path')
+    parser.add_argument('--stopwords_path', type=str, required=True, help='Stopwords data path')
+    parser.add_argument('--use_dash', action='store_true', help='Use dash in preprocessor')
     
     args = parser.parse_args()
+
+    print("User's Train path:", args.train_path)
+    print("User's Dev path:", args.dev_path)
+    print("User's Test path:", args.test_path)
+    print("User's Stopwords path:", args.stopwords_path)
+    print("User's Use dash:", args.use_dash)
 
     # Cài đặt các gói cần thiết
     installer = PackageInstaller(['pyvi', 'underthesea'])
@@ -52,7 +58,7 @@ def main():
     # Tiền xử lý văn bản
     preprocessor = VietnameseTextPreprocessor(stopwords_path=args.stopwords_path)
     use_dash = args.use_dash
-    print(use_dash)
+    
     # Xử lý các tập dữ liệu
     process_text = lambda texts, flag: [
         preprocessor.preprocess_text_vietnamese_to_tokens(text, isReturnTokens=True, isUsingDash=use_dash) 
@@ -66,6 +72,13 @@ def main():
     train_text_preprocessed = [' '.join(tokens) for tokens in train_text_tokens]
     test_text_preprocessed = [' '.join(tokens) for tokens in test_text_tokens]
     dev_text_preprocessed = [' '.join(tokens) for tokens in dev_text_tokens]
+
+    print('top 5 train_text_tokens:', train_text_tokens[:5])
+    print('top 5 train_text_preprocessed:', train_text_preprocessed[:5])
+    print('top 5 test_text_tokens:', test_text_tokens[:5])
+    print('top 5 test_text_preprocessed:', test_text_preprocessed[:5])
+    print('top 5 dev_text_tokens:', dev_text_tokens[:5])
+    print('top 5 dev_text_preprocessed:', dev_text_preprocessed[:5])
 
     # Lưu dữ liệu đã xử lý
     save_to_csv(train_text_preprocessed, train_label, 'processed_train.csv')
