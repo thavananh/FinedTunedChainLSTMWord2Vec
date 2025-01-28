@@ -107,13 +107,16 @@ def main():
     model = CustomModel(len(tokenizer.word_index)+1, embedding_matrix)
     model.build_model()
     model.compile_model()
+    print(train_label.shape)
+    print(dev_label.shape)
     model.train(train_features, train_label, dev_features, dev_label)
     
     # Đánh giá mô hình
     model.evaluate_model(test_features, test_label)
     preds = model.predict(test_features)
-    model.generate_classification_report(test_features, preds)
-    model.plot_confusion_matrix(test_features, preds)
+    # preds = tf.round(preds).numpy()
+    model.generate_classification_report(test_label, preds)
+    model.plot_confusion_matrix(test_label, preds)
 
 if __name__ == "__main__":
     main()

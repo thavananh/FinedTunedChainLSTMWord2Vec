@@ -73,7 +73,7 @@ class CustomModel:
         )
     
     def train(self, X_train, y_train, X_val, y_val, 
-             epochs=100, batch_size=64, patience=50):
+             epochs=1, batch_size=64, patience=50):
         early_stop = EarlyStopping(
             monitor='val_accuracy',
             patience=patience,
@@ -94,7 +94,9 @@ class CustomModel:
     def predict(self, X_test):
         return self.model.predict(X_test, verbose=0)
     
-    def generate_classification_report(self, y_true, y_pred, labels=['Positive', 'Neutral', 'Negative']):
+    def generate_classification_report(self, y_true, y_pred, labels=['Negative', 'Neutral', 'Positive']):
+        print(y_true)
+        print(y_pred)
         y_true_labels = np.argmax(y_true, axis=1)
         y_pred_labels = np.argmax(y_pred, axis=1)
         print(classification_report(
@@ -103,11 +105,11 @@ class CustomModel:
             zero_division=0
         ))
     
-    def plot_confusion_matrix(self, y_true, y_pred, labels=['Positive', 'Neutral', 'Negative']):
+    def plot_confusion_matrix(self, y_true, y_pred, labels=['Negative', 'Neutral', 'Positive']):
         y_true_labels = np.argmax(y_true, axis=1)
         y_pred_labels = np.argmax(y_pred, axis=1)
         
-        cm = confusion_matrix(y_true_labels, y_pred_labels)
+        cm = confusion_matrix(y_true_labels, y_pred_labels, labels=[0, 1, 2])
         disp = ConfusionMatrixDisplay(
             confusion_matrix=cm, 
             display_labels=labels
