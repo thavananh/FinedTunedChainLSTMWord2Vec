@@ -101,7 +101,7 @@ def main():
     print("\nPreparing embedding matrix...")
     model_sg = Word2VecModel()
     model_sg.load_model('model_sg.word2vec')
-    embedding_matrix = model_sg.get_embedding_matrix()
+    embedding_matrix = model_sg.get_embedding_matrix(tokenizer)
 
     print("\nBuilding model...")
     model = CustomModel(len(tokenizer.word_index)+1, embedding_matrix)
