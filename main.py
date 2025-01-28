@@ -52,7 +52,7 @@ def main():
     # Tiền xử lý văn bản
     preprocessor = VietnameseTextPreprocessor(stopwords_path=args.stopwords_path)
     use_dash = args.use_dash
-
+    print(use_dash)
     # Xử lý các tập dữ liệu
     process_text = lambda texts, flag: [
         preprocessor.preprocess_text_vietnamese_to_tokens(text, isReturnTokens=True, isUsingDash=use_dash) 
