@@ -73,7 +73,7 @@ class CustomModel:
         )
     
     def train(self, X_train, y_train, X_val, y_val, 
-             epochs=1, batch_size=64, patience=50):
+             epochs=100, batch_size=64, patience=50):
         early_stop = EarlyStopping(
             monitor='val_accuracy',
             patience=patience,
