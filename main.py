@@ -26,7 +26,7 @@ def main():
     parser.add_argument('--train_path', type=str, required=True, help='Đường dẫn đến tập train')
     parser.add_argument('--dev_path', type=str, required=True, help='Đường dẫn đến tập dev')
     parser.add_argument('--test_path', type=str, required=True, help='Đường dẫn đến tập test')
-    parser.add_argument('--stopwords_path', type=str, help='Đường dẫn đến file stopwords')
+    parser.add_argument('--stopwords_path', type=str, required=True, help='Đường dẫn đến file stopwords')
     parser.add_argument('--use_dash', action='store_true', help='Có sử dụng dấu gạch ngang trong tiền xử lý không')
     
     args = parser.parse_args()

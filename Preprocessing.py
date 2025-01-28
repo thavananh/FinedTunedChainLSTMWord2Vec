@@ -131,7 +131,7 @@ class VietnameseTextPreprocessor:
         return ' '.join(words)
 
     def load_stopwords(self):
-        with open('stopwords-vi_news.txt', 'r', encoding='utf-8') as file:
+        with open(self.stopwords_path, 'r', encoding='utf-8') as file:
             stopwords_small = file.readlines()
         # stopwords_small = [line.strip().replace(" ", "_") for line in stopwords_small]
         list_rare_words_1 = [
