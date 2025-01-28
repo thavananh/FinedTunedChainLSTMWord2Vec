@@ -1,9 +1,11 @@
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import string
 import regex as re
 import numpy as np
 import pandas as pd
 from underthesea import word_tokenize, text_normalize
+from loky import get_reusable_executor
 
 
 
@@ -145,7 +147,7 @@ class VietnameseTextPreprocessor:
             'hub', 'bridge','switch', 'windows', 'turnitindotcom', 'extensive reading', 'reading', 'extensive', 'search', 'quick', 'file header','paper',
             'directx', 'windows', 'linux', 'vote', 'itdotf', 'router', 'silverlight', 'đa luồng', 'crack', 'wrede' ,'dbpedia','ontology', 'tmf', 'vhdl',
             'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh', 'moodle',
-            'sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'trang', 'stack', 'queue','bảng băm', 'chính trị'
+            'sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'trang', 'stack', 'queue','bảng băm', 'chính trị', 'progressive', 'at', 'boss', 'ic', 'pdf', 'driver', 'room', 'link', 'thpt', 'thcs', 'murray', 'store', 'severside', 'hes', 'dsmax', 'header', 'prolog', 'pro', 'ida', 'youtube','hit','google','facebook','twitter','instagram','linkedin','pinterest','tumblr','reddit','snapchat','whatsapp','viber','line','zalo','wechat','telegram','skype','vimeo','flickr','periscope','twitch','soundcloud','spotify','shazam','apple','samsung','nokia','sony','lg','htc','huawei','oppo','vivo','xiaomi','meizu','asus','acer','dell','hp','lenovo','microsoft','google','amazon','ebay','alibaba','paypal','visa','mastercard','american express','jcb','diners club','discover','unionpay','apple pay','samsung pay','google pay','paypal','alipay','wechat pay','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo', 'smartphone', 'word', 'lap', 'dev', 'mfc', 'protues', 'unit', 'srum', 'dev','are', 'mfc', 'protues', 'ielts', 'bit', 'oracle','người dùng', 'user', 'bus', 'de', '...','virus'
         ]
         stopwords_small = [line.strip().replace(" ", "_") for line in stopwords_small]
         stopwords_small.append('dot')
@@ -154,7 +156,7 @@ class VietnameseTextPreprocessor:
             stopwords_small.append(item)
         return stopwords_small
 
-    def preprocess_text_vietnamese_to_tokens(self, text, isReturnTokens=True):
+    def preprocess_text_vietnamese_to_tokens(self, text, isReturnTokens=True, isUsingDash=True):
         text = self.covert_unicode(text)
         text = self.chuan_hoa_dau_cau_tieng_viet(text)
         text = text.lower()
@@ -220,6 +222,7 @@ class VietnameseTextPreprocessor:
             'listening': 'kỹ năng nghe',
             'listenning': 'kỹ năng nghe',
             'reading': 'kỹ năng đọc',
+            'writing': 'kỹ năng viết',
             'good': 'tốt',
             'english': 'tiếng anh',
             'bad': 'tệ',
@@ -238,7 +241,48 @@ class VietnameseTextPreprocessor:
             'thanks': 'cảm ơn',
             'thankss': 'cảm ơn',
             'ok': 'ổn',
-            'sư phạm': 'giảng dạy'
+            'sư phạm': 'giảng dạy',
+            'bigsmile': 'smile',
+            'smallsmile': 'smile',
+            'doublesurprise': 'surprise',
+            'show': 'cho xem',
+            'requirement': 'yêu cầu',
+            'assignments': 'bài tập',
+            'famous': 'nổi tiếng',
+            # 'store': 'cửa hàng',
+            'presentation': 'trình chiếu',
+            'book': 'sách',
+            'ebook': 'sách',
+            'bạnem': 'bạn',
+            'not': 'không',
+            'cute': 'dễ thương',
+            'project': 'đồ án',
+            'dự án': 'đồ án',
+            'quỳên': 'quyền',
+            'colonsad': 'sad',
+            'miss': 'thiếu',
+            'hoat': 'hoạt',
+            'upload': 'post',
+            'design': 'thiết kế',
+            'home': 'nhà',
+            'give': 'cho',
+            'given': 'cho',
+            'sưc': 'sức',
+            'traning': 'giảng dạy',
+            'reply': 'trả lời',
+            'eemail': 'email',
+            'submit': 'nộp',
+            'hihi':'smile',
+            'team': 'nhóm',
+            'very': 'rất',
+            'like': 'thích',
+            'chat': 'trò chuyện',
+            'lap': 'laptop',
+            'free': 'miễn phí',
+            'wed': 'website',
+            'update':'cập nhật',
+            'pc': 'máy tính',
+            'ko': 'không',
         }
         for original, replacement in mapping_dict.items():
             pattern = r'\b' + re.escape(original) + r'\b'
@@ -291,17 +335,45 @@ class VietnameseTextPreprocessor:
             'hub', 'bridge','switch', 'windows', 'turnitindotcom', 'extensive reading', 'reading', 'extensive', 'search', 'quick', 'file header','paper',
             'directx', 'windows', 'linux', 'vote', 'itdotf', 'router', 'silverlight', 'đa luồng', 'crack', 'wrede' ,'dbpedia','ontology', 'tmf', 'vhdl',
             'hdl', 'jsp', 'pđt', 'lisp', 'json', 'cpp', 'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy', 'itp', 'forum', 'embeded', 'system', 'embeded system', 'embedded', 'titanium', 'blackbery', 'zun', 'phonegap', 'tizen', 'je', 'mediafire','toeic', 'ghz', 'cpu', 'module', 'datapath', 'papers', 'daa', 'dijktra', 'oracal', 'database', 'access', 'netbean', 'facebook', 'hackerrankdotcom', 'sort', 'multiagent', 'th', 'contemn', 'dbms', 'html', 'php', 'heapsort', 'khmtdotuitdotedudotvn', 'vdotv', 'engine', 'download','input', 'output', 'wtf','forum', 'poison', 'uit', 'career', 'như', 'version', 'outdoor', 'coursedotuitdotedudotvn', 'mini', 'matlab', 'standford', 'name', 'size', 'framework', 'ucla', 'comment', 'is','we','serverside', 'cassette', 'ios', 'android', 'scrum', 'itdote', 'xml', 'photo', 'down', 'unikey', '3dsmax', 'firmware', 'km','hackerrank', 'projectbase', 'er', 'gay', 'feed', 'mác – lênin', 'mác', 'lênin', 'coursedotuitdotedudotvn', 'nfc', 'chip', 'full', 'oi', 'ht', 'ubuntu', 'linux', 'it', 'wecode', 'code','oop', 'hướng đối tượng', 'cho','để','macbook', 'a_z', 'av', 'anh văn', 'đã','một','nhưng','học sinh', 'moodle',
-            'sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'trang','stack', 'queue','bảng băm', 'chính trị'
+            'sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'trang', 'stack', 'queue','bảng băm', 'chính trị', 'progressive', 'at', 'boss', 'ic', 'pdf', 'driver', 'room', 'link', 'thpt', 'thcs', 'murray', 'store', 'severside', 'hes', 'dsmax', 'header', 'prolog', 'pro', 'ida', 'youtube','hit','google','facebook','twitter','instagram','linkedin','pinterest','tumblr','reddit','snapchat','whatsapp','viber','line','zalo','wechat','telegram','skype','vimeo','flickr','periscope','twitch','soundcloud','spotify','shazam','apple','samsung','nokia','sony','lg','htc','huawei','oppo','vivo','xiaomi','meizu','asus','acer','dell','hp','lenovo','microsoft','google','amazon','ebay','alibaba','paypal','visa','mastercard','american express','jcb','diners club','discover','unionpay','apple pay','samsung pay','google pay','paypal','alipay','wechat pay','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo','zalo pay','vnpay','airpay','moca','viettel pay','vinid','grabpay','moca','momo', 'smartphone', 'word', 'and','scrum', 'srum','lap', 'dev','are', 'mfc', 'protues', 'ielts', 'bit', 'oracle', 'người dùng', 'user', 'bus', 'de', '...','virus'
         ]
         rarewords_pattern = r'\b(?:' + '|'.join(re.escape(word) for word in list_rare_words) + r')\b'
         text = re.sub(rarewords_pattern, '', text)
-        tokens = word_tokenize(text, format='text').split()
+        for original, replacement in mapping_dict.items():
+            pattern = r'\b' + re.escape(original) + r'\b'
+            text = re.sub(pattern, replacement, text)
+        if isUsingDash:
+            tokens = word_tokenize(text, format='text').split()
+        else:
+            tokens = word_tokenize(text)
         tokens = [token for token in tokens if token not in self.stopwords_small]
         tokens = [token for token in tokens if token.strip()]
         text = ' '.join(tokens)
-        tokens = word_tokenize(text, format='text').split()
+        if isUsingDash:
+            tokens = word_tokenize(text, format='text').split()
+        else:
+            tokens = word_tokenize(text)
         if not isReturnTokens:
             return ' '.join(tokens)
         return tokens
     
+    def preprocess_texts_concurrently(self, texts, isReturnTokens=True, isUsingDash=True):
+        """
+        Preprocess multiple texts concurrently using loky's ProcessPoolExecutor.
+        """
+        preprocessed_texts = []
+        with get_reusable_executor(max_workers=24) as executor:
+            future_to_text = {
+                executor.submit(
+                    self.preprocess_text_vietnamese_to_tokens, text, isReturnTokens, isUsingDash
+                ): text
+                for text in texts
+            }
+            for future in as_completed(future_to_text):
+                try:
+                    preprocessed_text = future.result()
+                    preprocessed_texts.append(preprocessed_text)
+                except Exception as e:
+                    print(f"An error occurred while preprocessing text: {e}")
+        return preprocessed_texts
     
