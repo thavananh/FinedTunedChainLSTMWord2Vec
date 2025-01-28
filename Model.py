@@ -16,7 +16,7 @@ class CustomModel:
         self.history = None
         
         # Model hyperparameters
-        self.dropout_threshold = 0.1
+        self.dropout_threshold = 0.2
         self.embedding_output_dim = 300
         self.initializer = tf.keras.initializers.GlorotNormal()
     
@@ -38,11 +38,11 @@ class CustomModel:
         cnn = Dropout(self.dropout_threshold)(cnn)
         
         # Bidirectional LSTM
-        lstm = Bidirectional(LSTM(300, dropout=0.2, return_sequences=True, 
+        lstm = Bidirectional(LSTM(300, return_sequences=True, 
                                 kernel_initializer=self.initializer))(cnn)
         lstm = MaxPool1D()(lstm)
         lstm = LayerNormalization()(lstm)
-        
+        lstm = Dropout(self.dropout_threshold)(lstm)
         # Multi-head Attention
         attention = MultiHeadAttention(num_heads=12, key_dim=32)(lstm, lstm)
         attention = LayerNormalization()(attention)
@@ -73,7 +73,7 @@ class CustomModel:
         )
     
     def train(self, X_train, y_train, X_val, y_val, 
-             epochs=500, batch_size=64, patience=50):
+             epochs=100, batch_size=64, patience=50):
         early_stop = EarlyStopping(
             monitor='val_accuracy',
             patience=patience,
