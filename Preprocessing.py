@@ -32,8 +32,9 @@ class VietnameseTextPreprocessor:
         for idx, vowel_group in enumerate(self.bang_nguyen_am):
             for jdx, vowel in enumerate(vowel_group):
                 self.nguyen_am_to_ids[vowel] = (idx, jdx)
-        self.stopwords_small = self.load_stopwords()
         self.stopwords_path = stopwords_path
+        self.stopwords_small = self.load_stopwords()
+        
         
 
     def loaddicchar(self):
