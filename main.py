@@ -99,7 +99,7 @@ def main():
 
     # Chuẩn bị dữ liệu cho model
     tokenizer = Tokenizer(filters='!"#$%&()*+,-./:;<=>?@[\\]^`{|}~\t\n')
-    tokenizer.fit_on_texts(train_text_preprocessed)
+    tokenizer.fit_on_texts(train_text_tokens)
     
     # Padding sequences
     max_len = 110
@@ -111,6 +111,9 @@ def main():
     pickle.dump(tokenizer, open("tokenizer_data.pkl", "wb"))
 
     # Khởi tạo và huấn luyện mô hình
+
+    print(tokenizer.word_index)
+
     print("\nPreparing embedding matrix...")
     model_sg = Word2VecModel()
     model_sg.load_model('model_sg.word2vec')

@@ -1,5 +1,6 @@
+from regex import B
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Embedding, Conv1D, MaxPool1D, Dropout, LayerNormalization, Bidirectional, LSTM, Concatenate, GlobalMaxPooling1D, Dense, MultiHeadAttention
+from tensorflow.keras.layers import Input, Embedding, Conv1D, MaxPool1D, Dropout, LayerNormalization, Bidirectional, LSTM, Concatenate, GlobalMaxPooling1D, Dense, MultiHeadAttention, BatchNormalization
 from tensorflow.keras.optimizers import AdamW
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.models import Model
@@ -35,6 +36,11 @@ class CustomModel:
         # Convolutional block
         cnn = Conv1D(100, 3, padding='same', activation='relu')(x)
         cnn = MaxPool1D()(cnn)
+        cnn = BatchNormalization()(cnn)
+        cnn = Dropout(self.dropout_threshold)(cnn)
+        cnn = Conv1D(200, 3, padding='same', activation='relu')(x)
+        cnn = MaxPool1D()(cnn)
+        cnn = BatchNormalization()(cnn)
         cnn = Dropout(self.dropout_threshold)(cnn)
         
         # Bidirectional LSTM
@@ -118,13 +124,3 @@ class CustomModel:
         plt.grid(False)
         plt.title('Bi-LSTM with Multi-Head Attention')
         plt.show()
-
-# Example usage:
-# model = CustomModel(vocab_size, embedding_matrix)
-# model.build_model()
-# model.compile_model()
-# model.train(X_train, y_train, X_val, y_val)
-# model.evaluate_model(X_test, y_test)
-# preds = model.predict(X_test)
-# model.generate_classification_report(y_test, preds)
-# model.plot_confusion_matrix(y_test, preds)
