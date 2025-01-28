@@ -100,10 +100,9 @@ class Word2VecModel:
         random_mean = 0
         unk_vector = np.random.normal(random_mean, random_std, 300)
 
-        # Pre-fill the embedding matrix with the unknown vector
-        embedding_matrix = np.tile(unk_vector, (10000, 1))
-
         data_vocab_size = len(tokenizer_data.word_index) + 1
+        # Pre-fill the embedding matrix with the unknown vector
+        embedding_matrix = np.tile(unk_vector, (data_vocab_size, 1))
 
         # Populate the embedding matrix
         for word, i in tokenizer_data.word_index.items():
