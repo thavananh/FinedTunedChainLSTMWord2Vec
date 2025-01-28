@@ -113,7 +113,7 @@ class Word2VecModel:
             if embedding_vector is not None:
                 # embedding_matrix[i] = np.append(word2vec_cbow.wv[w],word2vec_sg.wv[w])
                 embedding_matrix[i] = self.model.wv[w]
-        return embeddings_index
+        return embedding_matrix
 
     def load_model(self, path, isBinary=False):
         if not isBinary:
