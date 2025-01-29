@@ -2,7 +2,7 @@ from datetime import datetime
 import multiprocessing
 import keras_tuner as kt
 import numpy as np
-from sklearn.metrics import classification_report
+from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.callbacks import EarlyStopping
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
