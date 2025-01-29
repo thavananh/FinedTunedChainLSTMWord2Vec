@@ -2,8 +2,6 @@ import multiprocessing
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
 import numpy as np
-from torch import embedding
-
 class Word2VecModel:
     """
     Class đóng gói mô hình Word2Vec với các chức năng:
