@@ -233,6 +233,7 @@ class VietnameseTextPreprocessor:
             'elab': 'lab',
             'group':'nhóm',
             'mic': 'microphone',
+            'micro': 'microphone',
             'debate': 'thảo luận',
             'test': 'kiểm tra',
             'thưc': 'thực',
@@ -287,6 +288,7 @@ class VietnameseTextPreprocessor:
             'update':'cập nhật',
             'pc': 'máy tính',
             'ko': 'không',
+            'stepbystep':'từng bước'
         }
         for original, replacement in mapping_dict.items():
             pattern = r'\b' + re.escape(original) + r'\b'

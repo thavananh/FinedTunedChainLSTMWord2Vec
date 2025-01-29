@@ -88,21 +88,27 @@ def main():
 
     # Huấn luyện mô hình Word2Vec
     print("\nTraining CBOW model...")
+
+    train_text_tokens_from_sent = [sent.split() for sent in train_text_preprocessed]
+
+
     model_cbow = Word2VecModel(sg=0)
-    model_cbow.train(train_text_tokens, epochs=15)
+    model_cbow.train(train_text_tokens_from_sent, epochs=15)
     model_cbow.save('model_cbow')
 
     print("\nTraining Skip-Gram model...")
     model_sg = Word2VecModel(sg=1)
-    model_sg.train(train_text_tokens, epochs=15)
+    model_sg.train(train_text_tokens_from_sent, epochs=15)
     model_sg.save('model_sg')
+
+    print(model_sg.get_vocab_dict())
 
     # Chuẩn bị dữ liệu cho model
     tokenizer = Tokenizer(filters='!"#$%&()*+,-./:;<=>?@[\\]^`{|}~\t\n')
-    tokenizer.fit_on_texts(train_text_tokens)
+    tokenizer.fit_on_texts(train_text_tokens_from_sent)
     
     # Padding sequences
-    max_len = 110
+    max_len = 130
     train_features = pad_sequences(tokenizer.texts_to_sequences(train_text_preprocessed), maxlen=max_len)
     test_features = pad_sequences(tokenizer.texts_to_sequences(test_text_preprocessed), maxlen=max_len)
     dev_features = pad_sequences(tokenizer.texts_to_sequences(dev_text_preprocessed), maxlen=max_len)
