@@ -3,6 +3,7 @@ from multiprocessing import process
 import pickle
 import csv
 
+from CustomerHyperModel import CustomHyperModel
 from DataLoader import DataLoader
 from Package import PackageInstaller
 from Preprocessing import VietnameseTextPreprocessor
@@ -12,6 +13,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from Model import CustomModel
+import keras_tuner as kt
 
 def save_to_csv(text_list, label_list, file_name):
     with open(file_name, mode='w', encoding='utf-8', newline='') as file:
@@ -131,7 +133,7 @@ def main():
     model.compile_model()
     print(train_label.shape)
     print(dev_label.shape)
-    model.train(train_features, train_label, dev_features, dev_label)
+    model.train(train_features, train_label, dev_features, dev_label, epochs=5)
     
     # Đánh giá mô hình
     model.evaluate_model(test_features, test_label)
@@ -139,6 +141,46 @@ def main():
     # preds = tf.round(preds).numpy()
     model.generate_classification_report(test_label, preds)
     model.plot_confusion_matrix(test_label, preds)
+
+    # Assuming you have:
+    # - w2v_corpus: Tokenized training corpus for Word2Vec
+    # - tokenizer_data: Fitted Keras Tokenizer for your dataset
+    # - X_train, y_train, X_val, y_val: Training and validation data
+
+    hypermodel = CustomHyperModel(
+        w2v_corpus=train_text_tokens_from_sent,
+        tokenizer_data=tokenizer,
+        input_length=130,  # Match your input sequence length
+        X_train=train_features,
+        y_train=train_label,
+        X_val=dev_features,
+        y_val=dev_label
+    )
+
+    tuner = kt.Hyperband(
+        hypermodel=hypermodel,
+         objective='val_accuracy',
+        max_epochs=10,
+        factor=3,
+        directory='hyper_tuning',
+        project_name='sentiment_analysis'
+    )
+
+    tuner.search()
+
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+
+# Retrieve best Word2Vec params
+    print(f"""
+    Best Word2Vec parameters:
+    - Architecture: {'Skip-gram' if best_hps.get('w2v_sg') else 'CBOW'}
+    - Vector Size: {best_hps.get('w2v_vector_size')}
+    - Window Size: {best_hps.get('w2v_window')}
+    - Min Count: {best_hps.get('w2v_min_count')}
+    """)
+
+    # Retrieve best model
+    best_model = tuner.get_best_models(num_models=1)[0]
 
 if __name__ == "__main__":
     main()

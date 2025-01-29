@@ -1,0 +1,24 @@
+Model Parameters:
+learning_rate: 6.950772468507906e-05
+dropout: 0.4
+dense_units: 256
+batch_size: 128
+
+Word2Vec Parameters:
+w2v_sg: 0
+w2v_vector_size: 200
+w2v_window: 9
+w2v_min_count: 5
+w2v_negative: 5
+w2v_sample: 1.221968322301451e-05
+
+Classification Report:
+              precision    recall  f1-score   support
+
+    Negative       0.84      0.06      0.11       705
+     Neutral       0.00      0.00      0.00        73
+    Positive       0.52      0.99      0.69       805
+
+    accuracy                           0.53      1583
+   macro avg       0.45      0.35      0.27      1583
+weighted avg       0.64      0.53      0.40      1583

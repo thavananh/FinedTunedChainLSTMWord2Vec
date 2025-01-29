@@ -7,6 +7,10 @@ from tensorflow.keras.models import Model
 from sklearn.metrics import classification_report, confusion_matrix, ConfusionMatrixDisplay
 import numpy as np
 import matplotlib.pyplot as plt
+from tensorflow.keras.callbacks import TensorBoard
+log_dir = "logs"
+tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+
 
 class CustomModel:
     def __init__(self, data_vocab_size, embedding_matrix, input_length=110):
@@ -80,7 +84,7 @@ class CustomModel:
         )
     
     def train(self, X_train, y_train, X_val, y_val, 
-             epochs=200, batch_size=64, patience=500):
+             epochs=50, batch_size=64, patience=500):
         early_stop = EarlyStopping(
             monitor='val_accuracy',
             patience=patience,
@@ -91,7 +95,7 @@ class CustomModel:
             validation_data=(X_val, y_val),
             epochs=epochs,
             batch_size=batch_size,
-            callbacks=[early_stop],
+            callbacks=[early_stop, tensorboard_callback],  # Thêm tensorboard callback vào
             verbose=1
         )
     

@@ -1,6 +1,8 @@
+from datetime import datetime
 import multiprocessing
 import keras_tuner as kt
 import numpy as np
+from sklearn.metrics import classification_report
 from tensorflow.keras.callbacks import EarlyStopping
 from gensim.models import Word2Vec
 from gensim.models import KeyedVectors
@@ -77,12 +79,46 @@ class CustomHyperModel(kt.HyperModel):
         return custom_model.model
 
     def fit(self, hp, model, *args, **kwargs):
+    # Lấy thông tin về các tham số của mô hình và Word2Vec
+        model_params = {
+            'learning_rate': hp.get('lr'),
+            'dropout': hp.get('dropout'),
+            'dense_units': hp.get('dense_units'),
+            'batch_size': hp.get('batch_size'),
+        }
+
+        w2v_params = {
+            'w2v_sg': hp.get('w2v_sg'),
+            'w2v_vector_size': hp.get('w2v_vector_size'),
+            'w2v_window': hp.get('w2v_window'),
+            'w2v_min_count': hp.get('w2v_min_count'),
+            'w2v_negative': hp.get('w2v_negative'),
+            'w2v_sample': hp.get('w2v_sample'),
+        }
+
+        # Tạo tên file với thời gian hiện tại
+        current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
+        report_filename = f"f1_score_report_{current_time}.txt"
+
+        # Lưu thông tin tham số vào file
+        with open(report_filename, "w") as file:
+            file.write("Model Parameters:\n")
+            for key, value in model_params.items():
+                file.write(f"{key}: {value}\n")
+
+            file.write("\nWord2Vec Parameters:\n")
+            for key, value in w2v_params.items():
+                file.write(f"{key}: {value}\n")
+        
+        # Đặt EarlyStopping callback
         early_stop = EarlyStopping(
             monitor='val_accuracy',
             patience=hp.Int('patience', 3, 10),
             restore_best_weights=True
         )
-        return model.fit(
+
+        # Huấn luyện mô hình
+        history = model.fit(
             self.X_train, self.y_train,
             validation_data=(self.X_val, self.y_val),
             epochs=100,
@@ -90,3 +126,22 @@ class CustomHyperModel(kt.HyperModel):
             callbacks=[early_stop],
             verbose=1
         )
+
+        # Dự đoán trên tập validation và tính toán F1-score
+        y_pred = model.predict(self.X_val, verbose=0)
+        y_true_labels = np.argmax(self.y_val, axis=1)
+        y_pred_labels = np.argmax(y_pred, axis=1)
+
+        # Tạo báo cáo classification với F1-score
+        report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0)
+
+        # In báo cáo vào terminal
+        print("\nClassification Report on Validation Set:")
+        print(report)
+
+        # Lưu báo cáo vào file
+        with open(report_filename, "a") as file:
+            file.write("\nClassification Report:\n")
+            file.write(report)
+
+        return history
