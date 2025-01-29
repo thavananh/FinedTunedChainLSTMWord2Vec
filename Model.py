@@ -18,7 +18,7 @@ class CustomModel:
         
         # Model hyperparameters
         self.dropout_threshold = 0.2
-        self.embedding_output_dim = 300
+        self.embedding_output_dim = embedding_matrix.shape[1]
         self.initializer = tf.keras.initializers.GlorotNormal()
     
     def build_model(self):
@@ -79,7 +79,7 @@ class CustomModel:
         )
     
     def train(self, X_train, y_train, X_val, y_val, 
-             epochs=100, batch_size=64, patience=50):
+             epochs=200, batch_size=64, patience=500):
         early_stop = EarlyStopping(
             monitor='val_accuracy',
             patience=patience,
