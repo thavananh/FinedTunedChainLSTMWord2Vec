@@ -78,8 +78,10 @@ class CustomHyperModel(kt.HyperModel):
         
         return custom_model.model
 
+    from sklearn.metrics import confusion_matrix
+
     def fit(self, hp, model, *args, **kwargs):
-    # Lấy thông tin về các tham số của mô hình và Word2Vec
+        # Lấy thông tin về các tham số của mô hình và Word2Vec
         model_params = {
             'learning_rate': hp.get('lr'),
             'dropout': hp.get('dropout'),
@@ -135,6 +137,16 @@ class CustomHyperModel(kt.HyperModel):
         # Tạo báo cáo classification với F1-score
         report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0)
 
+        # Tính toán confusion matrix
+        cm = confusion_matrix(y_true_labels, y_pred_labels)
+
+        # Tạo chuỗi để ghi confusion matrix vào file
+        cm_str = "Confusion Matrix:\n"
+        cm_str += "    Negative  Neutral  Positive\n"
+        cm_str += f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n"
+        cm_str += f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n"
+        cm_str += f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n"
+
         # In báo cáo vào terminal
         print("\nClassification Report on Validation Set:")
         print(report)
@@ -143,5 +155,7 @@ class CustomHyperModel(kt.HyperModel):
         with open(report_filename, "a") as file:
             file.write("\nClassification Report:\n")
             file.write(report)
+            file.write("\n")
+            file.write(cm_str)
 
         return history

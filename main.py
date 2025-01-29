@@ -140,7 +140,7 @@ def main():
     preds = model.predict(test_features)
     # preds = tf.round(preds).numpy()
     model.generate_classification_report(test_label, preds)
-    model.plot_confusion_matrix(test_label, preds)
+    # model.plot_confusion_matrix(test_label, preds)
 
     # Assuming you have:
     # - w2v_corpus: Tokenized training corpus for Word2Vec
