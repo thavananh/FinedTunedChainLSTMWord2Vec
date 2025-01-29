@@ -126,7 +126,7 @@ def main():
     embedding_matrix = model_sg.get_embedding_matrix(tokenizer)
 
     print("\nBuilding model...")
-    model = CustomModel(len(tokenizer.word_index)+1, embedding_matrix)
+    model = CustomModel(len(tokenizer.word_index)+1, embedding_matrix, input_length=max_len)
     model.build_model()
     model.compile_model()
     print(train_label.shape)
