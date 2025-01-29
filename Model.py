@@ -29,7 +29,8 @@ class CustomModel:
             input_dim=self.data_vocab_size, 
             output_dim=self.embedding_output_dim,
             embeddings_initializer=self.initializer,
-            weights=[self.embedding_matrix]
+            weights=[self.embedding_matrix],
+            trainable=True
         )(input_layer)
         x = Dropout(0.5)(x)
         
