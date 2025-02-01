@@ -10,7 +10,7 @@ from gensim.models import KeyedVectors
 from Model import CustomModel
 
 class CustomHyperModel(kt.HyperModel):
-    def __init__(self, w2v_corpus, tokenizer_data, input_length, X_train, y_train, X_val, y_val):
+    def __init__(self, w2v_corpus, tokenizer_data, input_length, X_train, y_train, X_val, y_val, X_test, y_test):
         super().__init__()
         self.w2v_corpus = w2v_corpus
         self.tokenizer_data = tokenizer_data
@@ -19,6 +19,8 @@ class CustomHyperModel(kt.HyperModel):
         self.y_train = y_train
         self.X_val = X_val
         self.y_val = y_val
+        self.X_test = X_test
+        self.y_test = y_test
 
     def build(self, hp):
         # Word2Vec Hyperparameters
@@ -292,6 +294,35 @@ class CustomHyperModel(kt.HyperModel):
 
         # In báo cáo vào terminal
         print("\nClassification Report on Validation Set:")
+        print(report)
+
+        # Lưu báo cáo vào file
+        with open(report_filename, "a") as file:
+            file.write("\nClassification Report:\n")
+            file.write(report)
+            file.write("\n")
+            file.write(cm_str)
+
+
+        y_pred_test = model.predict(self.X_test, verbose=0)
+        y_true_labels_test = np.argmax(self.y_test, axis=1)
+        y_pred_labels_test = np.argmax(y_pred_test, axis=1)
+
+        # Tạo báo cáo classification với F1-score
+        report = classification_report(y_true_labels_test, y_pred_labels_test, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=3)
+
+        # Tính toán confusion matrix
+        cm = confusion_matrix(y_true_labels_test, y_pred_labels_test)
+
+        # Tạo chuỗi để ghi confusion matrix vào file
+        cm_str = "Confusion Matrix:\n"
+        cm_str += "    Negative  Neutral  Positive\n"
+        cm_str += f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n"
+        cm_str += f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n"
+        cm_str += f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n"
+
+        # In báo cáo vào terminal
+        print("\nClassification Report on Test Set:")
         print(report)
 
         # Lưu báo cáo vào file
