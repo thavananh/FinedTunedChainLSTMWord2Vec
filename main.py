@@ -172,7 +172,9 @@ def main():
         X_train=train_features,
         y_train=train_label,
         X_val=dev_features,
-        y_val=dev_label
+        y_val=dev_label,
+        X_test=test_features,
+        y_test=test_label
     )
 
     tuner = kt.Hyperband(
