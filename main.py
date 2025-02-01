@@ -1,11 +1,14 @@
 import argparse
 from multiprocessing import process
+import os
 import pickle
 import csv
+import subprocess
+import sys
 
 from CustomerHyperModel import CustomHyperModel
 from DataLoader import DataLoader
-from Package import PackageInstaller
+
 from Preprocessing import VietnameseTextPreprocessor
 from Word2Vec import Word2VecModel
 import numpy as np
@@ -21,6 +24,26 @@ def save_to_csv(text_list, label_list, file_name):
         writer.writerow(['text', 'label'])
         for text, label in zip(text_list, label_list):
             writer.writerow([text, label])
+
+def install_requirements(file_path='requirements.txt'):
+    try:
+        # Kiểm tra xem file requirements.txt có tồn tại không
+        with open(file_path, 'r') as f:
+            print(f"Đang đọc file: {file_path}")
+        
+        # Chạy lệnh pip install -r requirements.txt
+        print("Đang cài đặt các thư viện từ requirements.txt...")
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', file_path])
+        print("Cài đặt thành công!")
+
+    except FileNotFoundError:
+        print(f"File {file_path} không tồn tại. Vui lòng kiểm tra lại đường dẫn.")
+    except subprocess.CalledProcessError as e:
+        print(f"Có lỗi xảy ra khi cài đặt các thư viện: {e}")
+    except Exception as e:
+        print(f"Lỗi không mong đợi: {e}")
+
+
 
 def main():
     # Thiết lập các tham số dòng lệnh
@@ -40,9 +63,8 @@ def main():
     print("User's Use dash:", args.use_dash)
 
     # Cài đặt các gói cần thiết
-    installer = PackageInstaller(['pyvi', 'underthesea'])
-    installer.install_packages()
-    print("Đã cài các gói:", installer.list_packages())
+    
+    print(f'Packages: {os.system("pip list")}')
 
     # Nạp dữ liệu
     data_loader = DataLoader(args.train_path, args.dev_path, args.test_path)
@@ -133,19 +155,15 @@ def main():
     model.compile_model()
     print(train_label.shape)
     print(dev_label.shape)
-    model.train(train_features, train_label, dev_features, dev_label, epochs=5)
+    model.train(train_features, train_label, dev_features, dev_label, epochs=2)
     
     # Đánh giá mô hình
     model.evaluate_model(test_features, test_label)
     preds = model.predict(test_features)
-    # preds = tf.round(preds).numpy()
+    preds = tf.round(preds).numpy()
     model.generate_classification_report(test_label, preds)
-    # model.plot_confusion_matrix(test_label, preds)
+    model.plot_confusion_matrix(test_label, preds, is_print_terminal=True)
 
-    # Assuming you have:
-    # - w2v_corpus: Tokenized training corpus for Word2Vec
-    # - tokenizer_data: Fitted Keras Tokenizer for your dataset
-    # - X_train, y_train, X_val, y_val: Training and validation data
 
     hypermodel = CustomHyperModel(
         w2v_corpus=train_text_tokens_from_sent,
@@ -159,11 +177,14 @@ def main():
 
     tuner = kt.Hyperband(
         hypermodel=hypermodel,
-         objective='val_accuracy',
-        max_epochs=10,
+        objective='val_accuracy',
+        max_epochs=50,
         factor=3,
         directory='hyper_tuning',
-        project_name='sentiment_analysis'
+        project_name='sentiment_analysis',
+        hyperband_iterations=1,
+        distribution_strategy=tf.distribute.MirroredStrategy(),
+        overwrite=True
     )
 
     tuner.search()

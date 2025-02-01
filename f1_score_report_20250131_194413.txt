@@ -1,0 +1,13 @@
+Model Parameters:
+learning_rate: 0.00012129560775108323
+dropout: 0.2
+dense_units: 128
+batch_size: 32
+
+Word2Vec Parameters:
+w2v_sg: 0
+w2v_vector_size: 200
+w2v_window: 9
+w2v_min_count: 5
+w2v_negative: 10
+w2v_sample: 0.0006150905320401866

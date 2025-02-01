@@ -29,7 +29,7 @@ class CustomHyperModel(kt.HyperModel):
             'min_count': hp.Int('w2v_min_count', 5, 20, step=5),
             'negative': hp.Int('w2v_negative', 5, 15, step=5),
             'sample': hp.Float('w2v_sample', 1e-5, 1e-3, sampling='log'),
-            'epochs': 30  # Fixed for tuning efficiency
+            'epochs': 30  
         }
 
         # Train Word2Vec
@@ -67,13 +67,103 @@ class CustomHyperModel(kt.HyperModel):
 
         # Tune CustomModel Hyperparameters
         hp_custom = {
+            # General hyperparameters
             'learning_rate': hp.Float('lr', 1e-5, 1e-3, sampling='log'),
-            'dropout': hp.Float('dropout', 0.1, 0.5, step=0.1),
-            'dense_units': hp.Int('dense_units', 64, 256, step=64),
-            'batch_size': hp.Choice('batch_size', [32, 64, 128])
+            'batch_size': hp.Choice('batch_size', [32, 64, 128]),
+            
+            # Dropout-related hyperparameters
+            'dropout_features': hp.Float('dropout_features', 0.0, 0.5, step=0.1),
+            'dropout_combine': hp.Float('dropout_combine', 0.0, 0.5, step=0.1),
+
+            # CNN-related hyperparameters
+            'cnn_1_filter_size': hp.Int('cnn_1_filter_size', 32, 256, step=32),
+            'cnn_1_kernel_size': hp.Int('cnn_1_kernel_size', 3, 7, step=2),
+            'cnn_1_padding': hp.Choice('cnn_1_padding', ['valid', 'same']),
+            'cnn_1_activation': hp.Choice('cnn_1_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_1_dropout_rate': hp.Float('cnn_1_dropout_rate', 0.0, 0.5, step=0.1),
+
+            'cnn_2_filter_size': hp.Int('cnn_2_filter_size', 32, 256, step=32),
+            'cnn_2_kernel_size': hp.Int('cnn_2_kernel_size', 3, 7, step=2),
+            'cnn_2_padding': hp.Choice('cnn_2_padding', ['valid', 'same']),
+            'cnn_2_activation': hp.Choice('cnn_2_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_2_dropout_rate': hp.Float('cnn_2_dropout_rate', 0.0, 0.5, step=0.1),
+
+            'cnn_3_filter_size': hp.Int('cnn_3_filter_size', 32, 256, step=32),
+            'cnn_3_kernel_size': hp.Int('cnn_3_kernel_size', 3, 7, step=2),
+            'cnn_3_padding': hp.Choice('cnn_3_padding', ['valid', 'same']),
+            'cnn_3_activation': hp.Choice('cnn_3_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_3_dropout_rate': hp.Float('cnn_3_dropout_rate', 0.0, 0.5, step=0.1),
+
+            'cnn_4_filter_size': hp.Int('cnn_4_filter_size', 32, 256, step=32),
+            'cnn_4_kernel_size': hp.Int('cnn_4_kernel_size', 3, 7, step=2),
+            'cnn_4_padding': hp.Choice('cnn_4_padding', ['valid', 'same']),
+            'cnn_4_activation': hp.Choice('cnn_4_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_4_dropout_rate': hp.Float('cnn_4_dropout_rate', 0.0, 0.5, step=0.1),
+
+            # LSTM-related hyperparameters
+            'lstm_1_units': hp.Int('lstm_1_units', 64, 512, step=64),
+            'lstm_1_dropout_rate': hp.Float('lstm_1_dropout_rate', 0.0, 0.5, step=0.1),
+
+            'lstm_2_units': hp.Int('lstm_2_units', 64, 512, step=64),
+            'lstm_2_dropout_rate': hp.Float('lstm_2_dropout_rate', 0.0, 0.5, step=0.1),
+
+            # Multi-head Attention-related hyperparameters
+            'multi_head_attention_num_heads': hp.Int('multi_head_attention_num_heads', 4, 16, step=4),
+            'multi_head_attention_key_dim': hp.Int('multi_head_attention_key_dim', 32, 128, step=32),
+            'multi_head_attention_dropout_rate': hp.Float('multi_head_attention_dropout_rate', 0.0, 0.5, step=0.1),
+
+            # Dense-related hyperparameters
+            'dense_1_units': hp.Int('dense_1_units', 64, 512, step=64),
+            'dense_1_dropout_rate': hp.Float('dense_1_dropout_rate', 0.0, 0.5, step=0.1),
+            'dense_1_activation': hp.Choice('dense_1_activation', ['relu', 'elu', 'gelu','silu']),
+
+            'dense_2_units': hp.Int('dense_2_units', 64, 512, step=64),
+            'dense_2_dropout_rate': hp.Float('dense_2_dropout_rate', 0.0, 0.5, step=0.1),
+            'dense_2_activation': hp.Choice('dense_2_activation', ['relu', 'elu', 'gelu','silu']),
+
+            'dense_3_units': hp.Int('dense_3_units', 64, 512, step=64),
+            'dense_3_dropout_rate': hp.Float('dense_3_dropout_rate', 0.0, 0.5, step=0.1),
+            'dense_3_activation': hp.Choice('dense_3_activation', ['softmax', 'log_softmax']),
         }
 
-        custom_model.dropout_threshold = hp_custom['dropout']
+        custom_model.dropout_combine = hp_custom['dropout_combine']
+        custom_model.dropout_features = hp_custom['dropout_features']
+        custom_model.cnn_1_filter_size = hp_custom['cnn_1_filter_size']
+        custom_model.cnn_1_kernel_size = hp_custom['cnn_1_kernel_size']
+        custom_model.cnn_1_padding = hp_custom['cnn_1_padding']
+        custom_model.cnn_1_activation = hp_custom['cnn_1_activation']
+        custom_model.cnn_1_dropout_rate = hp_custom['cnn_1_dropout_rate']
+        custom_model.cnn_2_filter_size = hp_custom['cnn_2_filter_size']
+        custom_model.cnn_2_kernel_size = hp_custom['cnn_2_kernel_size']
+        custom_model.cnn_2_padding = hp_custom['cnn_2_padding']
+        custom_model.cnn_2_activation = hp_custom['cnn_2_activation']
+        custom_model.cnn_2_dropout_rate = hp_custom['cnn_2_dropout_rate']
+        custom_model.cnn_3_filter_size = hp_custom['cnn_3_filter_size']
+        custom_model.cnn_3_kernel_size = hp_custom['cnn_3_kernel_size']
+        custom_model.cnn_3_padding = hp_custom['cnn_3_padding']
+        custom_model.cnn_3_activation = hp_custom['cnn_3_activation']
+        custom_model.cnn_3_dropout_rate = hp_custom['cnn_3_dropout_rate']
+        custom_model.cnn_4_filter_size = hp_custom['cnn_4_filter_size']
+        custom_model.cnn_4_kernel_size = hp_custom['cnn_4_kernel_size']
+        custom_model.cnn_4_padding = hp_custom['cnn_4_padding']
+        custom_model.cnn_4_activation = hp_custom['cnn_4_activation']
+        custom_model.cnn_4_dropout_rate = hp_custom['cnn_4_dropout_rate']
+        custom_model.lstm_1_units = hp_custom['lstm_1_units']
+        custom_model.lstm_1_dropout_rate = hp_custom['lstm_1_dropout_rate']
+        custom_model.lstm_2_units = hp_custom['lstm_2_units']
+        custom_model.lstm_2_dropout_rate = hp_custom['lstm_2_dropout_rate']
+        custom_model.multi_head_attention_num_heads = hp_custom['multi_head_attention_num_heads']
+        custom_model.multi_head_attention_key_dim = hp_custom['multi_head_attention_key_dim']
+        custom_model.multi_head_attention_dropout_rate = hp_custom['multi_head_attention_dropout_rate']
+        custom_model.dense_1_units = hp_custom['dense_1_units']
+        custom_model.dense_1_dropout_rate = hp_custom['dense_1_dropout_rate']
+        custom_model.dense_1_activation = hp_custom['dense_1_activation']
+        custom_model.dense_2_units = hp_custom['dense_2_units']
+        custom_model.dense_2_dropout_rate = hp_custom['dense_2_dropout_rate']
+        custom_model.dense_2_activation = hp_custom['dense_2_activation']
+        custom_model.dense_3_units = hp_custom['dense_3_units']
+        custom_model.dense_3_dropout_rate = hp_custom['dense_3_dropout_rate']
+        custom_model.dense_3_activation = hp_custom['dense_3_activation']
         custom_model.compile_model(learning_rate=hp_custom['learning_rate'])
         
         return custom_model.model
@@ -83,10 +173,63 @@ class CustomHyperModel(kt.HyperModel):
     def fit(self, hp, model, *args, **kwargs):
         # Lấy thông tin về các tham số của mô hình và Word2Vec
         model_params = {
+            # General hyperparameters
             'learning_rate': hp.get('lr'),
-            'dropout': hp.get('dropout'),
-            'dense_units': hp.get('dense_units'),
             'batch_size': hp.get('batch_size'),
+            
+            # Dropout-related hyperparameters
+            'dropout_features': hp.get('dropout_features'),
+            'dropout_combine': hp.get('dropout_combine'),
+
+            # CNN-related hyperparameters
+            'cnn_1_filter_size': hp.get('cnn_1_filter_size'),
+            'cnn_1_kernel_size': hp.get('cnn_1_kernel_size'),
+            'cnn_1_padding': hp.get('cnn_1_padding'),
+            'cnn_1_activation': hp.get('cnn_1_activation'),
+            'cnn_1_dropout_rate': hp.get('cnn_1_dropout_rate'),
+
+            'cnn_2_filter_size': hp.get('cnn_2_filter_size'),
+            'cnn_2_kernel_size': hp.get('cnn_2_kernel_size'),
+            'cnn_2_padding': hp.get('cnn_2_padding'),
+            'cnn_2_activation': hp.get('cnn_2_activation'),
+            'cnn_2_dropout_rate': hp.get('cnn_2_dropout_rate'),
+
+            'cnn_3_filter_size': hp.get('cnn_3_filter_size'),
+            'cnn_3_kernel_size': hp.get('cnn_3_kernel_size'),
+            'cnn_3_padding': hp.get('cnn_3_padding'),
+            'cnn_3_activation': hp.get('cnn_3_activation'),
+            'cnn_3_dropout_rate': hp.get('cnn_3_dropout_rate'),
+
+            'cnn_4_filter_size': hp.get('cnn_4_filter_size'),
+            'cnn_4_kernel_size': hp.get('cnn_4_kernel_size'),
+            'cnn_4_padding': hp.get('cnn_4_padding'),
+            'cnn_4_activation': hp.get('cnn_4_activation'),
+            'cnn_4_dropout_rate': hp.get('cnn_4_dropout_rate'),
+
+            # LSTM-related hyperparameters
+            'lstm_1_units': hp.get('lstm_1_units'),
+            'lstm_1_dropout_rate': hp.get('lstm_1_dropout_rate'),
+
+            'lstm_2_units': hp.get('lstm_2_units'),
+            'lstm_2_dropout_rate': hp.get('lstm_2_dropout_rate'),
+
+            # Multi-head Attention-related hyperparameters
+            'multi_head_attention_num_heads': hp.get('multi_head_attention_num_heads'),
+            'multi_head_attention_key_dim': hp.get('multi_head_attention_key_dim'),
+            'multi_head_attention_dropout_rate': hp.get('multi_head_attention_dropout_rate'),
+
+            # Dense-related hyperparameters
+            'dense_1_units': hp.get('dense_1_units'),
+            'dense_1_dropout_rate': hp.get('dense_1_dropout_rate'),
+            'dense_1_activation': hp.get('dense_1_activation'),
+
+            'dense_2_units': hp.get('dense_2_units'),
+            'dense_2_dropout_rate': hp.get('dense_2_dropout_rate'),
+            'dense_2_activation': hp.get('dense_2_activation'),
+
+            'dense_3_units': hp.get('dense_3_units'),
+            'dense_3_dropout_rate': hp.get('dense_3_dropout_rate'),
+            'dense_3_activation': hp.get('dense_3_activation'),
         }
 
         w2v_params = {
@@ -115,7 +258,7 @@ class CustomHyperModel(kt.HyperModel):
         # Đặt EarlyStopping callback
         early_stop = EarlyStopping(
             monitor='val_accuracy',
-            patience=hp.Int('patience', 3, 10),
+            patience=20,
             restore_best_weights=True
         )
 
@@ -135,7 +278,7 @@ class CustomHyperModel(kt.HyperModel):
         y_pred_labels = np.argmax(y_pred, axis=1)
 
         # Tạo báo cáo classification với F1-score
-        report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0)
+        report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=3)
 
         # Tính toán confusion matrix
         cm = confusion_matrix(y_true_labels, y_pred_labels)

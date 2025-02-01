@@ -1,0 +1,5 @@
+tensorflow
+keras-tuner
+underthesea
+pyvi
+loky
