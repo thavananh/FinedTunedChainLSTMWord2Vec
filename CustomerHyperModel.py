@@ -260,7 +260,7 @@ class CustomHyperModel(kt.HyperModel):
         # Đặt EarlyStopping callback
         early_stop = EarlyStopping(
             monitor='val_accuracy',
-            patience=20,
+            patience=200,
             restore_best_weights=True
         )
 
@@ -268,7 +268,7 @@ class CustomHyperModel(kt.HyperModel):
         history = model.fit(
             self.X_train, self.y_train,
             validation_data=(self.X_val, self.y_val),
-            epochs=100,
+            epochs=200,
             batch_size=hp.get('batch_size'),
             callbacks=[early_stop],
             verbose=1
