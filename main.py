@@ -185,7 +185,7 @@ def main():
         directory='hyper_tuning',
         project_name='sentiment_analysis',
         hyperband_iterations=1,
-        # distribution_strategy=tf.distribute.MirroredStrategy(),
+        distribution_strategy=tf.distribute.MirroredStrategy(),
         overwrite=True
     )
 
