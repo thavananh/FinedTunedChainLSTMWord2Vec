@@ -9,7 +9,6 @@ from sklearn.metrics import classification_report, confusion_matrix, ConfusionMa
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
-from torch import mul
 log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
