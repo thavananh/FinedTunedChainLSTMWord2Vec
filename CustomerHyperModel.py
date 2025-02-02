@@ -83,25 +83,29 @@ class CustomHyperModel(kt.HyperModel):
             'cnn_1_filter_size': hp.Int('cnn_1_filter_size', 32, 256, step=32),
             'cnn_1_kernel_size': hp.Int('cnn_1_kernel_size', 1, 4, step=1),
             'cnn_1_padding': hp.Choice('cnn_1_padding', ['valid', 'same']),
-            'cnn_1_activation': hp.Choice('cnn_1_activation', ['relu', 'elu', 'gelu','silu']),
+            # 'cnn_1_activation': hp.Choice('cnn_1_activation', ['relu', 'elu', 'gelu','silu']),
+            'cnn_1_activation': hp.Choice('cnn_1_activation', ['silu']),
             'cnn_1_dropout_rate': hp.Float('cnn_1_dropout_rate', 0.0, 0.5, step=0.1),
 
             'cnn_2_filter_size': hp.Int('cnn_2_filter_size', 32, 256, step=32),
             'cnn_2_kernel_size': hp.Int('cnn_2_kernel_size', 1, 4, step=1),
             'cnn_2_padding': hp.Choice('cnn_2_padding', ['valid', 'same']),
-            'cnn_2_activation': hp.Choice('cnn_2_activation', ['relu', 'elu', 'gelu','silu']),
+            # 'cnn_2_activation': hp.Choice('cnn_2_activation', ['relu', 'elu', 'gelu','silu']),
+            'cnn_2_activation': hp.Choice('cnn_2_activation', ['silu']),
             'cnn_2_dropout_rate': hp.Float('cnn_2_dropout_rate', 0.0, 0.5, step=0.1),
 
             'cnn_3_filter_size': hp.Int('cnn_3_filter_size', 32, 256, step=32),
             'cnn_3_kernel_size': hp.Int('cnn_3_kernel_size', 1, 4, step=1),
             'cnn_3_padding': hp.Choice('cnn_3_padding', ['valid', 'same']),
-            'cnn_3_activation': hp.Choice('cnn_3_activation', ['relu', 'elu', 'gelu','silu']),
+            # 'cnn_3_activation': hp.Choice('cnn_3_activation', ['relu', 'elu', 'gelu','silu']),
+            'cnn_3_activation': hp.Choice('cnn_3_activation', ['silu']),
             'cnn_3_dropout_rate': hp.Float('cnn_3_dropout_rate', 0.0, 0.5, step=0.1),
 
             'cnn_4_filter_size': hp.Int('cnn_4_filter_size', 32, 256, step=32),
             'cnn_4_kernel_size': hp.Int('cnn_4_kernel_size', 1, 4, step=1),
             'cnn_4_padding': hp.Choice('cnn_4_padding', ['valid', 'same']),
-            'cnn_4_activation': hp.Choice('cnn_4_activation', ['relu', 'elu', 'gelu','silu']),
+            # 'cnn_4_activation': hp.Choice('cnn_4_activation', ['relu', 'elu', 'gelu','silu']),
+            'cnn_4_activation': hp.Choice('cnn_4_activation', ['silu']),
             'cnn_4_dropout_rate': hp.Float('cnn_4_dropout_rate', 0.0, 0.5, step=0.1),
 
             # LSTM-related hyperparameters
@@ -119,11 +123,13 @@ class CustomHyperModel(kt.HyperModel):
             # Dense-related hyperparameters
             'dense_1_units': hp.Int('dense_1_units', 64, 512, step=64),
             'dense_1_dropout_rate': hp.Float('dense_1_dropout_rate', 0.0, 0.5, step=0.1),
-            'dense_1_activation': hp.Choice('dense_1_activation', ['relu', 'elu', 'gelu','silu']),
+            # 'dense_1_activation': hp.Choice('dense_1_activation', ['relu', 'elu', 'gelu','silu']),
+            'dense_1_activation': hp.Choice('dense_1_activation', ['silu']),
 
             'dense_2_units': hp.Int('dense_2_units', 64, 512, step=64),
             'dense_2_dropout_rate': hp.Float('dense_2_dropout_rate', 0.0, 0.5, step=0.1),
-            'dense_2_activation': hp.Choice('dense_2_activation', ['relu', 'elu', 'gelu','silu']),
+            # 'dense_2_activation': hp.Choice('dense_2_activation', ['relu', 'elu', 'gelu','silu']),
+            'dense_2_activation': hp.Choice('dense_2_activation', ['silu']),
 
             'dense_3_units': hp.Int('dense_3_units', 64, 512, step=64),
             'dense_3_dropout_rate': hp.Float('dense_3_dropout_rate', 0.0, 0.5, step=0.1),
