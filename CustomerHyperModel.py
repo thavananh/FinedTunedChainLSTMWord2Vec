@@ -25,7 +25,7 @@ class CustomHyperModel(kt.HyperModel):
     def build(self, hp):
         # Word2Vec Hyperparameters
         w2v_params = {
-            'sg': hp.Choice('w2v_sg', [0, 1]),
+            'sg': hp.Choice('w2v_sg', [1]),
             'vector_size': hp.Int('w2v_vector_size', 100, 300, step=100),
             'window': hp.Int('w2v_window', 3, 10, step=2),
             'min_count': hp.Int('w2v_min_count', 5, 20, step=5),
@@ -70,7 +70,7 @@ class CustomHyperModel(kt.HyperModel):
         # Tune CustomModel Hyperparameters
         hp_custom = {
             # General hyperparameters
-            'learning_rate': hp.Float('lr', 1e-5, 1e-3, sampling='log'),
+            'learning_rate': hp.Float('lr', 1e-4, 1e-3, sampling='log'),
             'batch_size': hp.Choice('batch_size', [32, 64, 128]),
             
             # Dropout-related hyperparameters
@@ -79,27 +79,27 @@ class CustomHyperModel(kt.HyperModel):
 
             # CNN-related hyperparameters
             'cnn_1_filter_size': hp.Int('cnn_1_filter_size', 32, 256, step=32),
-            'cnn_1_kernel_size': hp.Int('cnn_1_kernel_size', 3, 7, step=2),
+            'cnn_1_kernel_size': hp.Int('cnn_1_kernel_size', 1, 7, step=2),
             'cnn_1_padding': hp.Choice('cnn_1_padding', ['valid', 'same']),
-            'cnn_1_activation': hp.Choice('cnn_1_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_1_activation': hp.Choice('cnn_1_activation', ['relu', 'elu', 'gelu','silu']),
             'cnn_1_dropout_rate': hp.Float('cnn_1_dropout_rate', 0.0, 0.5, step=0.1),
 
             'cnn_2_filter_size': hp.Int('cnn_2_filter_size', 32, 256, step=32),
-            'cnn_2_kernel_size': hp.Int('cnn_2_kernel_size', 3, 7, step=2),
+            'cnn_2_kernel_size': hp.Int('cnn_2_kernel_size', 1, 7, step=2),
             'cnn_2_padding': hp.Choice('cnn_2_padding', ['valid', 'same']),
-            'cnn_2_activation': hp.Choice('cnn_2_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_2_activation': hp.Choice('cnn_2_activation', ['relu', 'elu', 'gelu','silu']),
             'cnn_2_dropout_rate': hp.Float('cnn_2_dropout_rate', 0.0, 0.5, step=0.1),
 
             'cnn_3_filter_size': hp.Int('cnn_3_filter_size', 32, 256, step=32),
-            'cnn_3_kernel_size': hp.Int('cnn_3_kernel_size', 3, 7, step=2),
+            'cnn_3_kernel_size': hp.Int('cnn_3_kernel_size', 1, 7, step=2),
             'cnn_3_padding': hp.Choice('cnn_3_padding', ['valid', 'same']),
-            'cnn_3_activation': hp.Choice('cnn_3_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_3_activation': hp.Choice('cnn_3_activation', ['relu', 'elu', 'gelu','silu']),
             'cnn_3_dropout_rate': hp.Float('cnn_3_dropout_rate', 0.0, 0.5, step=0.1),
 
             'cnn_4_filter_size': hp.Int('cnn_4_filter_size', 32, 256, step=32),
-            'cnn_4_kernel_size': hp.Int('cnn_4_kernel_size', 3, 7, step=2),
+            'cnn_4_kernel_size': hp.Int('cnn_4_kernel_size', 1, 7, step=2),
             'cnn_4_padding': hp.Choice('cnn_4_padding', ['valid', 'same']),
-            'cnn_4_activation': hp.Choice('cnn_4_activation', ['relu', 'tanh', 'sigmoid']),
+            'cnn_4_activation': hp.Choice('cnn_4_activation', ['relu', 'elu', 'gelu','silu']),
             'cnn_4_dropout_rate': hp.Float('cnn_4_dropout_rate', 0.0, 0.5, step=0.1),
 
             # LSTM-related hyperparameters
