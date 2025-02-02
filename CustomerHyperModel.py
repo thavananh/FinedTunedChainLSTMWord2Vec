@@ -269,7 +269,7 @@ class CustomHyperModel(kt.HyperModel):
         # Đặt EarlyStopping callback
         early_stop = EarlyStopping(
             monitor='val_accuracy',
-            patience=100,
+            patience=20,
             restore_best_weights=True
         )
 
@@ -291,7 +291,7 @@ class CustomHyperModel(kt.HyperModel):
         y_pred_labels = np.argmax(y_pred, axis=1)
 
         # Tạo báo cáo classification với F1-score
-        report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=2)
+        report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=4)
 
         # Tính toán confusion matrix
         cm = confusion_matrix(y_true_labels, y_pred_labels)
@@ -322,7 +322,7 @@ class CustomHyperModel(kt.HyperModel):
         y_pred_labels_test = np.argmax(y_pred_test, axis=1)
 
         # Tạo báo cáo classification với F1-score
-        report_1 = classification_report(y_true_labels_test, y_pred_labels_test, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=2)
+        report_1 = classification_report(y_true_labels_test, y_pred_labels_test, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=4)
 
         # Tính toán confusion matrix
         cm_1 = confusion_matrix(y_true_labels_test, y_pred_labels_test)
