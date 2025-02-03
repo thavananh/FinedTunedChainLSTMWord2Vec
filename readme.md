@@ -21,6 +21,7 @@ curl -O https://gist.githubusercontent.com/NCKH-collab/9e71c0555c73e02572907b7ef
 chmod +x install_anaconda.sh
 ./install_anaconda.sh
 
+
 python main.py \
      --train_path "./UIT-VSFC_train.csv" \
      --dev_path "./UIT-VSFC_dev.csv" \
