@@ -1,0 +1,102 @@
+Model Parameters:
+learning_rate: 0.0008466009048192112
+batch_size: 64
+dropout_features: 0.1
+dropout_combine: 0.1
+cnn_1_filter_size: 224
+cnn_1_kernel_size: 3
+cnn_1_padding: same
+cnn_1_activation: silu
+cnn_1_dropout_rate: 0.2
+cnn_2_filter_size: 128
+cnn_2_kernel_size: 2
+cnn_2_padding: valid
+cnn_2_activation: silu
+cnn_2_dropout_rate: 0.4
+cnn_3_filter_size: 256
+cnn_3_kernel_size: 2
+cnn_3_padding: valid
+cnn_3_activation: silu
+cnn_3_dropout_rate: 0.1
+cnn_4_filter_size: 160
+cnn_4_kernel_size: 4
+cnn_4_padding: same
+cnn_4_activation: silu
+cnn_4_dropout_rate: 0.30000000000000004
+lstm_1_units: 512
+lstm_1_dropout_rate: 0.1
+lstm_2_units: 64
+lstm_2_dropout_rate: 0.0
+multi_head_attention_num_heads: 8
+multi_head_attention_key_dim: 128
+multi_head_attention_dropout_rate: 0.1
+dense_1_units: 320
+dense_1_dropout_rate: 0.4
+dense_1_activation: silu
+dense_2_units: 448
+dense_2_dropout_rate: 0.0
+dense_2_activation: silu
+dense_3_units: 384
+dense_3_dropout_rate: 0.2
+dense_3_activation: softmax
+
+Word2Vec Parameters:
+w2v_sg: 1
+w2v_vector_size: 300
+w2v_window: 7
+w2v_min_count: 6
+w2v_negative: 5
+w2v_sample: 5.3630060051425556e-05
+
+Classification Report:
+              precision    recall  f1-score   support
+
+    Negative     0.9248    0.9418    0.9332       705
+     Neutral     0.6939    0.4658    0.5574        73
+    Positive     0.9314    0.9441    0.9377       805
+
+    accuracy                         0.9210      1583
+   macro avg     0.8500    0.7839    0.8094      1583
+weighted avg     0.9175    0.9210    0.9182      1583
+
+Confusion Matrix On Validation Set:
+    Negative  Neutral  Positive
+Negative   664      8      33
+Neutral    16      34      23
+Positive   38      7      760
+
+Classification Report On Validatation Set:
+              precision    recall  f1-score   support
+
+    Negative     0.9248    0.9418    0.9332       705
+     Neutral     0.6939    0.4658    0.5574        73
+    Positive     0.9314    0.9441    0.9377       805
+
+    accuracy                         0.9210      1583
+   macro avg     0.8500    0.7839    0.8094      1583
+weighted avg     0.9175    0.9210    0.9182      1583
+
+Classification Report On Test Set:
+              precision    recall  f1-score   support
+
+    Negative     0.9028    0.9284    0.9154      1410
+     Neutral     0.5138    0.3353    0.4058       167
+    Positive     0.9135    0.9239    0.9186      1589
+
+    accuracy                         0.8948      3166
+   macro avg     0.7767    0.7292    0.7466      3166
+weighted avg     0.8876    0.8948    0.8901      3166
+
+Confusion Matrix On Validatation Set:
+Confusion Matrix On Validation Set:
+    Negative  Neutral  Positive
+Negative   664      8      33
+Neutral    16      34      23
+Positive   38      7      760
+
+Confusion Matrix On Validatation Set:
+Confusion Matrix On Test Set:
+    Negative  Neutral  Positive
+Negative   1309      26      75
+Neutral    47      56      64
+Positive   94      27      1468

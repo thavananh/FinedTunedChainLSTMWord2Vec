@@ -78,6 +78,9 @@ def main():
     test_label = loader['test_labels']
     dev_text = loader['dev_text']
     dev_label = loader['dev_labels']
+    unpreprocessed_label_train = loader['unprocessed_label_train']
+    unpreprocessed_label_test = loader['unprocessed_label_test']
+    unpreprocessed_label_dev = loader['unprocessed_label_dev']
 
     # Tiền xử lý văn bản
     preprocessor = VietnameseTextPreprocessor(stopwords_path=args.stopwords_path)
@@ -105,16 +108,20 @@ def main():
     print('top 5 dev_text_preprocessed:', dev_text_preprocessed[:5])
 
     # Lưu dữ liệu đã xử lý
-    save_to_csv(train_text_preprocessed, train_label, 'processed_train.csv')
-    save_to_csv(test_text_preprocessed, test_label, 'processed_test.csv')
-    save_to_csv(dev_text_preprocessed, dev_label, 'processed_dev.csv')
+    save_to_csv(train_text_preprocessed, unpreprocessed_label_train, 'processed_train.csv')
+    save_to_csv(test_text_preprocessed, unpreprocessed_label_test, 'processed_test.csv')
+    save_to_csv(dev_text_preprocessed, unpreprocessed_label_dev, 'processed_dev.csv')
     print('Đã lưu các tập dữ liệu đã xử lý vào CSV.')
 
     # Huấn luyện mô hình Word2Vec
     print("\nTraining CBOW model...")
 
-    train_text_tokens_from_sent = [sent.split() for sent in train_text_preprocessed]
+    if not args.use_dash:
+        dev_train_combined = train_text_preprocessed + dev_text_preprocessed
+        train_text_tokens_from_sent = [sent.split() for sent in dev_train_combined]
+    train_text_tokens_from_sent = train_text_tokens + dev_text_tokens
 
+    print('top 5 train_text_tokens_from_sent:', train_text_tokens_from_sent[:5])
 
     model_cbow = Word2VecModel(sg=0)
     model_cbow.train(train_text_tokens_from_sent, epochs=15)

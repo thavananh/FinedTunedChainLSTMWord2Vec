@@ -5,6 +5,13 @@ python main.py \
  --dev_path "./UIT-VSFC_dev.csv" \
  --test_path "./UIT-VSFC_test.csv" \
  --stopwords_path "stopwords-vi_news.txt"
+
+python main.py \
+ --train_path "./UIT-VSFC_train.csv" \
+ --dev_path "./UIT-VSFC_dev.csv" \
+ --test_path "./UIT-VSFC_test.csv" \
+ --stopwords_path "stopwords-vi_news.txt"\
+ --use_dash
 On Windows:
 
 python main.py --train_path "./UIT-VSFC_train.csv" --dev_path "./UIT-VSFC_dev.csv" --test_path "./UIT-VSFC_test.csv" --stopwords_path "stopwords-vi_news.txt"
