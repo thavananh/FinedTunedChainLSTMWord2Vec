@@ -17,6 +17,7 @@ On Windows:
 python main.py --train_path "./UIT-VSFC_train.csv" --dev_path "./UIT-VSFC_dev.csv" --test_path "./UIT-VSFC_test.csv" --stopwords_path "stopwords-vi_news.txt"
 
 install anaconda on Ubuntu:
-curl -O https://gist.githubusercontent.com/NCKH-collab/9e71c0555c73e02572907b7ef8f5ddb0/raw/65b2eb8d038344deda8f044584f072a3bc280c58/install_anaconda.sh
+curl -O https://gist.githubusercontent.com/NCKH-collab/9e71c0555c73e02572907b7ef8f5ddb0/raw/622a0cb4e8a7318e215b064bab2f9f7bce15fe98/install_anaconda.sh
 chmod +x install_anaconda.sh
 ./install_anaconda.sh
+
