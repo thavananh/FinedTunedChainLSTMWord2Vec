@@ -21,3 +21,4 @@ curl -O https://gist.githubusercontent.com/NCKH-collab/9e71c0555c73e02572907b7ef
 chmod +x install_anaconda.sh
 ./install_anaconda.sh
 
+git clone https://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@github.com/thavananh/FinedTunedChainLSTMWord2Vec.git

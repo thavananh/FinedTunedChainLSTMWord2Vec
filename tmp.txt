@@ -1,0 +1,1 @@
+'các_em', 'chúng_em', 'tụi_em', 'các_bạn', 'tụi_em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy','sinh viên', 'học sinh', 'giáo viên', 'giảng viên'
