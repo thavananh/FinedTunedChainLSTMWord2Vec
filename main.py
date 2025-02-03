@@ -53,6 +53,7 @@ def main():
     parser.add_argument('--test_path', type=str, required=True, help='Testing data path')
     parser.add_argument('--stopwords_path', type=str, required=True, help='Stopwords data path')
     parser.add_argument('--use_dash', action='store_true', help='Use dash in preprocessor')
+    parser.add_argument('--use_simple', action='store_true', help='Simple spliting text')
     
     args = parser.parse_args()
 
@@ -61,6 +62,8 @@ def main():
     print("User's Test path:", args.test_path)
     print("User's Stopwords path:", args.stopwords_path)
     print("User's Use dash:", args.use_dash)
+    print("User's Use simple:", args.use_simple)
+    
 
     # Cài đặt các gói cần thiết
     
@@ -87,14 +90,14 @@ def main():
     use_dash = args.use_dash
     
     # Xử lý các tập dữ liệu
-    process_text = lambda texts, flag: [
-        preprocessor.preprocess_text_vietnamese_to_tokens(text, isReturnTokens=True, isUsingDash=use_dash) 
+    process_text = lambda texts: [
+        preprocessor.preprocess_text_vietnamese_to_tokens(text, isReturnTokens=True, isUsingDash=use_dash, isSimple=args.use_simple) 
         for text in texts
     ]
     
-    train_text_tokens = process_text(train_text, use_dash)
-    test_text_tokens = process_text(test_text, use_dash)
-    dev_text_tokens = process_text(dev_text, use_dash)
+    train_text_tokens = process_text(train_text)
+    test_text_tokens = process_text(test_text)
+    dev_text_tokens = process_text(dev_text)
 
     train_text_preprocessed = [' '.join(tokens) for tokens in train_text_tokens]
     test_text_preprocessed = [' '.join(tokens) for tokens in test_text_tokens]
