@@ -48,6 +48,7 @@ class CZhouLSTMModel:
         data_vocab_size,
         embedding_matrix,
         input_length=110,
+        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3))
         lstm_attributes_1=LSTMAttribute(300),
         lstm_attributes_2=LSTMAttribute(300),
         multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
@@ -76,33 +77,17 @@ class CZhouLSTMModel:
         self.dense_attributes_3 = dense_attributes_3
 
     def build_model(self):
-        dropout_threshold = 0.1
-        input_dim = self.data_vocab_size
-        output_dim = 300
-        input_length = 110
-        initializer = tf.keras.initializers.GlorotNormal()
+        input_layer = Input(shape=(self.input_length,))
 
-        input_layer = Input(shape=(input_length,))
-
-        # Embedding Layer
-        if self.embedding_matrix is not None:
-            feature = Embedding(
-                input_dim=input_dim,
-                output_dim=output_dim,
-                embeddings_initializer=initializer,
-                weights=[self.embedding_matrix],
-                input_length=input_length,
-                trainable=False,  # Set to True if you want to fine-tune embeddings
-            )(input_layer)
-        else:
-            feature = Embedding(
-                input_dim=input_dim,
-                output_dim=output_dim,
-                embeddings_initializer=initializer,
-                input_length=input_length,
-            )(input_layer)
-
-        feature = Dropout(0.5)(feature)
+        # Embedding layer
+        x = Embedding(
+            input_dim=self.data_vocab_size,
+            output_dim=self.embedding_output_dim,
+            embeddings_initializer=self.initializer,
+            weights=[self.embedding_matrix],
+            trainable=False,
+        )(input_layer)
+        x = Dropout(0.5)(x)
 
         ### Conv1D Path ###
         cnn_block_1 = Conv1DBlock(
@@ -126,7 +111,7 @@ class CZhouLSTMModel:
             dropout_rate=self.cnn_attributes_4.dropout_rate,
         )
 
-        cnn = cnn_block_1(feature)
+        cnn = cnn_block_1(x)
         cnn = cnn_block_2(cnn)
         cnn = cnn_block_3(cnn)
         cnn = cnn_block_4(cnn)
@@ -147,8 +132,8 @@ class CZhouLSTMModel:
 
         ### Conv2D Path ###
         # Reshape for Conv2D: (batch_size, height, width, channels)
-        conv2d_input = Reshape((input_length, output_dim, 1))(
-            feature
+        conv2d_input = Reshape((self.input_length, self.embedding_output_dim, 1))(
+            x
         )  # (batch_size, 110, 300, 1)
 
         conv2d_block_1 = Conv2DBlock(
@@ -171,7 +156,7 @@ class CZhouLSTMModel:
             [bi_lstm_pooled, attention_pooled, cnn_pooled, cnn_2d_pooled]
         )
         combine_feature = LayerNormalization()(combine_feature)
-        combine_feature = Dropout(dropout_threshold)(combine_feature)
+        combine_feature = Dropout(self.dropout_combine)(combine_feature)
 
         # Dense layers with L2 regularization (optional)
         dense_block_1 = DenseBlock(

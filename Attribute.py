@@ -16,7 +16,7 @@ class CnnAtribute:
 
 #filters=32, kernel_size=(3, 3), activation="relu", padding="same"
 
-class Cnn2DAttriBute:
+class Cnn2DAttribute:
     def __init__(
         self,
         filter_size,
