@@ -48,7 +48,12 @@ class CZhouLSTMModel:
         data_vocab_size,
         embedding_matrix,
         input_length=110,
-        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3))
+        cnn_attributes_1=CnnAtribute(100, 1),
+        cnn_attributes_2=CnnAtribute(100, 2),
+        cnn_attributes_3=CnnAtribute(200, 3),
+        cnn_attributes_4=CnnAtribute(200, 4),
+        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_2 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
         lstm_attributes_1=LSTMAttribute(300),
         lstm_attributes_2=LSTMAttribute(300),
         multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
@@ -68,6 +73,12 @@ class CZhouLSTMModel:
         self.embedding_output_dim = embedding_matrix.shape[1]
         self.initializer = tf.keras.initializers.GlorotNormal()
         self.dropout_features = dropout_features
+        self.cnn_attributes_1 = cnn_attributes_1
+        self.cnn_attributes_2 = cnn_attributes_2
+        self.cnn_attributes_3 = cnn_attributes_3
+        self.cnn_attributes_4 = cnn_attributes_4
+        self.cnn_2d_attribute_1 = cnn_2d_attribute_1
+        self.cnn_2d_attribute_2 = cnn_2d_attribute_2
         self.lstm_attributes_1 = lstm_attributes_1
         self.lstm_attributes_2 = lstm_attributes_2
         self.multi_head_attention_attributes = multi_head_attention_attributes
@@ -87,7 +98,7 @@ class CZhouLSTMModel:
             weights=[self.embedding_matrix],
             trainable=False,
         )(input_layer)
-        x = Dropout(0.5)(x)
+        x = Dropout(self.dropout_features)(x)
 
         ### Conv1D Path ###
         cnn_block_1 = Conv1DBlock(
@@ -137,10 +148,10 @@ class CZhouLSTMModel:
         )  # (batch_size, 110, 300, 1)
 
         conv2d_block_1 = Conv2DBlock(
-            filters=32, kernel_size=(3, 3), activation="relu", padding="same"
+            filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
         )
         conv2d_block_2 = Conv2DBlock(
-            filters=32, kernel_size=(3, 3), activation="relu", padding="same"
+            filters=self.cnn_2d_attribute_2.filter_size, kernel_size=self.cnn_2d_attribute_2.kernel_size, activation=self.cnn_2d_attribute_2.activation, padding=self.cnn_2d_attribute_2.padding
         )
 
         cnn_2d = conv2d_block_1(conv2d_input)

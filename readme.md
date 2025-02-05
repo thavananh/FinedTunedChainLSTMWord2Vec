@@ -26,3 +26,10 @@ python main.py \
  --test_path "./UIT-VSFC_test.csv" \
  --stopwords_path "stopwords-vi_news.txt" \
  --use_simple
+
+
+if you want to run ollama please follow this script "curl -fsSL https://ollama.com/install.sh | sh" after that run "pip install ollama"
+if you want a fast, memory efficent model, please use the model from Unsloth. It's very good, work like magic.
+run "ollama pull hf.co/unsloth/Llama-3.2-3B-Instruct-GGUF:Q8_0"
+
+

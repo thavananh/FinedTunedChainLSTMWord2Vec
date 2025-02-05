@@ -52,11 +52,8 @@ class CustomModel:
         data_vocab_size,
         embedding_matrix,
         input_length=110,
-        lstm_attributes_1=LSTMAttribute(300),
-        lstm_attributes_2=LSTMAttribute(300),
-        multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
-        dense_attributes_1=DenseAttribute(256),
-        dense_attributes_2=DenseAttribute(64),
+        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_2 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
         dropout_combine=0.0,
@@ -71,12 +68,10 @@ class CustomModel:
         self.embedding_output_dim = embedding_matrix.shape[1]
         self.initializer = tf.keras.initializers.GlorotNormal()
         self.dropout_features = dropout_features
-        self.lstm_attributes_1 = lstm_attributes_1
-        self.lstm_attributes_2 = lstm_attributes_2
-        self.multi_head_attention_attributes = multi_head_attention_attributes
+        self.cnn_2d_attribute_1 = cnn_2d_attribute_1
+        self.cnn_2d_attribute_2 = cnn_2d_attribute_2
         self.dropout_combine = dropout_combine
-        self.dense_attributes_1 = dense_attributes_1
-        self.dense_attributes_2 = dense_attributes_2
+
         self.dense_attributes_3 = dense_attributes_3
 
     def build_model(self):
@@ -112,33 +107,17 @@ class CustomModel:
         )  # (batch_size, 110, 300, 1)
 
         conv2d_block_1 = Conv2DBlock(
-            filters=32, kernel_size=(3, 3), activation="relu", padding="same"
+            filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
         )
         conv2d_block_2 = Conv2DBlock(
-            filters=32, kernel_size=(3, 3), activation="relu", padding="same"
+            filters=self.cnn_2d_attribute_2.filter_size, kernel_size=self.cnn_2d_attribute_2.kernel_size, activation=self.cnn_2d_attribute_2.activation, padding=self.cnn_2d_attribute_2.padding
         )
 
         cnn_2d = conv2d_block_1(conv2d_input)
         cnn_2d = conv2d_block_2(cnn_2d)
 
         cnn_2d_pooled = GlobalMaxPooling2D(cnn_2d)
-        cnn_pooled = GlobalMaxPooling1D(cnn)
-        attention_pooled = GlobalMaxPooling1D(attention)
-        bi_lstm_pooled = GlobalMaxPooling1D(lstm)
 
-        ### Combine All Features ###
-        combine_feature = Concatenate()(
-            [bi_lstm_pooled, attention_pooled, cnn_pooled, cnn_2d_pooled]
-        )
-        combine_feature = LayerNormalization()(combine_feature)
-        combine_feature = Dropout(dropout_threshold)(combine_feature)
-
-        # Dense layers with L2 regularization (optional)
-        dense_block_1 = DenseBlock(
-            units=self.dense_attributes_1.units,
-            dropout_rate=self.dense_attributes_1.dropout_rate,
-            activation=self.dense_attributes_1.activation
-        )
 
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,
@@ -146,9 +125,7 @@ class CustomModel:
             activation=self.dense_attributes_3.activation,
         )
 
-        dense = dense_block_1(combine_feature)
-
-        output = dense_block_3(dense)  # Final output layer
+        output = dense_block_3(cnn_2d_pooled)  # Final output layer
 
         self.model = Model(inputs=input_layer, outputs=output)
 

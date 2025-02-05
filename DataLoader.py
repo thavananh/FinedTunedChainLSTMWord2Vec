@@ -87,7 +87,6 @@ class DataLoader:
 
     def get_processed_data(self):
         # Return processed data
-
         return {
             "train_text": self.train_data_text,
             "train_labels": self.label_tf_train,
