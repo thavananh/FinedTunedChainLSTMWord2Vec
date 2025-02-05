@@ -1,3 +1,5 @@
+# https://arxiv.org/pdf/1511.08630
+# CZhou have conv2d
 from calendar import c
 from regex import B
 import tensorflow as tf
@@ -5,17 +7,22 @@ from tensorflow.keras.layers import (
     Input,
     Embedding,
     Conv1D,
+    Conv2D,
     MaxPool1D,
+    MaxPooling2D,
     Dropout,
-    LayerNormalization,
+    BatchNormalization,
+    GlobalMaxPooling1D,
+    GlobalMaxPooling2D,
+    Dense,
     Bidirectional,
     LSTM,
-    Concatenate,
-    GlobalMaxPooling1D,
-    Dense,
+    LayerNormalization,
     MultiHeadAttention,
-    BatchNormalization,
+    Concatenate,
+    Reshape,
 )
+
 from tensorflow.keras.optimizers import AdamW
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.models import Model
@@ -32,18 +39,15 @@ from Block import *
 
 log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
+from Block import *
 
 
-class CustomModel:
+class CZhouLSTMModel:
     def __init__(
         self,
         data_vocab_size,
         embedding_matrix,
         input_length=110,
-        cnn_attributes_1=CnnAtribute(100, 1),
-        cnn_attributes_2=CnnAtribute(100, 2),
-        cnn_attributes_3=CnnAtribute(200, 3),
-        cnn_attributes_4=CnnAtribute(200, 4),
         lstm_attributes_1=LSTMAttribute(300),
         lstm_attributes_2=LSTMAttribute(300),
         multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
@@ -63,10 +67,6 @@ class CustomModel:
         self.embedding_output_dim = embedding_matrix.shape[1]
         self.initializer = tf.keras.initializers.GlorotNormal()
         self.dropout_features = dropout_features
-        self.cnn_attributes_1 = cnn_attributes_1
-        self.cnn_attributes_2 = cnn_attributes_2
-        self.cnn_attributes_3 = cnn_attributes_3
-        self.cnn_attributes_4 = cnn_attributes_4
         self.lstm_attributes_1 = lstm_attributes_1
         self.lstm_attributes_2 = lstm_attributes_2
         self.multi_head_attention_attributes = multi_head_attention_attributes
@@ -76,19 +76,35 @@ class CustomModel:
         self.dense_attributes_3 = dense_attributes_3
 
     def build_model(self):
-        input_layer = Input(shape=(self.input_length,))
+        dropout_threshold = 0.1
+        input_dim = self.data_vocab_size
+        output_dim = 300
+        input_length = 110
+        initializer = tf.keras.initializers.GlorotNormal()
 
-        # Embedding layer
-        x = Embedding(
-            input_dim=self.data_vocab_size,
-            output_dim=self.embedding_output_dim,
-            embeddings_initializer=self.initializer,
-            weights=[self.embedding_matrix],
-            trainable=False,
-        )(input_layer)
-        x = Dropout(0.5)(x)
+        input_layer = Input(shape=(input_length,))
 
-        # Convolutional block
+        # Embedding Layer
+        if self.embedding_matrix is not None:
+            feature = Embedding(
+                input_dim=input_dim,
+                output_dim=output_dim,
+                embeddings_initializer=initializer,
+                weights=[self.embedding_matrix],
+                input_length=input_length,
+                trainable=False,  # Set to True if you want to fine-tune embeddings
+            )(input_layer)
+        else:
+            feature = Embedding(
+                input_dim=input_dim,
+                output_dim=output_dim,
+                embeddings_initializer=initializer,
+                input_length=input_length,
+            )(input_layer)
+
+        feature = Dropout(0.5)(feature)
+
+        ### Conv1D Path ###
         cnn_block_1 = Conv1DBlock(
             filters=self.cnn_attributes_1.filter_size,
             kernel_size=self.cnn_attributes_1.kernel_size,
@@ -110,26 +126,18 @@ class CustomModel:
             dropout_rate=self.cnn_attributes_4.dropout_rate,
         )
 
-        cnn = cnn_block_1(x)
+        cnn = cnn_block_1(feature)
         cnn = cnn_block_2(cnn)
         cnn = cnn_block_3(cnn)
         cnn = cnn_block_4(cnn)
 
-        # Bidirectional LSTM
-        lstm_block_1 = LSTMBlock(
-            units=self.lstm_attributes_1.units,
-            dropout_rate=self.lstm_attributes_1.dropout_rate,
-        )
-
-        lstm_block_2 = LSTMBlock(
-            units=self.lstm_attributes_2.units,
-            dropout_rate=self.lstm_attributes_2.dropout_rate,
-        )
+        ### Bi-LSTM and Attention Path ###
+        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_1.dropout_rate)
+        lstm_block_2 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_2.dropout_rate)
 
         lstm = lstm_block_1(cnn)
         lstm = lstm_block_2(lstm)
 
-        # Multi-head Attention
         multi_head_attention_block = MultiHeadAttentionBlock(
             num_heads=self.multi_head_attention_attributes.num_heads,
             key_dim=self.multi_head_attention_attributes.key_dim,
@@ -137,37 +145,56 @@ class CustomModel:
         )
         attention = multi_head_attention_block(lstm)
 
-        # Feature pooling and concatenation
-        cnn_pool = GlobalMaxPooling1D()(cnn)
-        attn_pool = GlobalMaxPooling1D()(attention)
-        combined = Concatenate()([cnn_pool, attn_pool])
-        combined = LayerNormalization()(combined)
-        combined = Dropout(self.dropout_combine)(combined)
+        ### Conv2D Path ###
+        # Reshape for Conv2D: (batch_size, height, width, channels)
+        conv2d_input = Reshape((input_length, output_dim, 1))(
+            feature
+        )  # (batch_size, 110, 300, 1)
 
+        conv2d_block_1 = Conv2DBlock(
+            filters=32, kernel_size=(3, 3), activation="relu", padding="same"
+        )
+        conv2d_block_2 = Conv2DBlock(
+            filters=32, kernel_size=(3, 3), activation="relu", padding="same"
+        )
+
+        cnn_2d = conv2d_block_1(conv2d_input)
+        cnn_2d = conv2d_block_2(cnn_2d)
+
+        cnn_2d_pooled = GlobalMaxPooling2D(cnn_2d)
+        cnn_pooled = GlobalMaxPooling1D(cnn)
+        attention_pooled = GlobalMaxPooling1D(attention)
+        bi_lstm_pooled = GlobalMaxPooling1D(lstm)
+
+        ### Combine All Features ###
+        combine_feature = Concatenate()(
+            [bi_lstm_pooled, attention_pooled, cnn_pooled, cnn_2d_pooled]
+        )
+        combine_feature = LayerNormalization()(combine_feature)
+        combine_feature = Dropout(dropout_threshold)(combine_feature)
+
+        # Dense layers with L2 regularization (optional)
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
             dropout_rate=self.dense_attributes_1.dropout_rate,
-            activation=self.dense_attributes_1.activation,
+            activation=self.dense_attributes_1.activation
         )
-        dense_block_2 = DenseBlock(
-            units=self.dense_attributes_2.units,
-            dropout_rate=self.dense_attributes_2.dropout_rate,
-            activation=self.dense_attributes_2.activation,
-        )
+
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,
             dropout_rate=self.dense_attributes_3.dropout_rate,
             activation=self.dense_attributes_3.activation,
         )
 
-        dense = dense_block_1(combined)
-        dense = dense_block_2(dense)
-        output = dense_block_3(dense)
+        dense = dense_block_1(combine_feature)
+
+        output = dense_block_3(dense)  # Final output layer
 
         self.model = Model(inputs=input_layer, outputs=output)
 
     def compile_model(self, learning_rate=1e-4, weight_decay=0.0):
-        optimizer = AdamW(learning_rate=learning_rate, weight_decay=weight_decay)
+        lr_schedule = WarmUp(initial_lr=learning_rate, warmup_steps=500, decay_steps=10000)
+        optimizer = AdamW(learning_rate=lr_schedule, weight_decay=weight_decay)
         self.model.compile(
             optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"]
         )
@@ -178,6 +205,7 @@ class CustomModel:
         early_stop = EarlyStopping(
             monitor="val_accuracy", patience=patience, restore_best_weights=True
         )
+        
         self.history = self.model.fit(
             X_train,
             y_train,

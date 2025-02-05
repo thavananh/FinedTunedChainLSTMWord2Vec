@@ -18,22 +18,24 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from Model import CustomModel
 import keras_tuner as kt
 
+
 def save_to_csv(text_list, label_list, file_name):
-    with open(file_name, mode='w', encoding='utf-8', newline='') as file:
+    with open(file_name, mode="w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(['text', 'label'])
+        writer.writerow(["text", "label"])
         for text, label in zip(text_list, label_list):
             writer.writerow([text, label])
 
-def install_requirements(file_path='requirements.txt'):
+
+def install_requirements(file_path="requirements.txt"):
     try:
         # Kiểm tra xem file requirements.txt có tồn tại không
-        with open(file_path, 'r') as f:
+        with open(file_path, "r") as f:
             print(f"Đang đọc file: {file_path}")
-        
+
         # Chạy lệnh pip install -r requirements.txt
         print("Đang cài đặt các thư viện từ requirements.txt...")
-        subprocess.check_call([sys.executable, '-m', 'pip', 'install', '-r', file_path])
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", file_path])
         print("Cài đặt thành công!")
 
     except FileNotFoundError:
@@ -44,77 +46,95 @@ def install_requirements(file_path='requirements.txt'):
         print(f"Lỗi không mong đợi: {e}")
 
 
-
 def main():
     # Thiết lập các tham số dòng lệnh
-    parser = argparse.ArgumentParser(description='Train model for Vietnamese text classification.')
-    parser.add_argument('--train_path', type=str, required=True, help='Training data path')
-    parser.add_argument('--dev_path', type=str, required=True, help='Development data path')
-    parser.add_argument('--test_path', type=str, required=True, help='Testing data path')
-    parser.add_argument('--stopwords_path', type=str, required=True, help='Stopwords data path')
-    parser.add_argument('--use_dash', action='store_true', help='Use dash in preprocessor')
-    parser.add_argument('--use_simple', action='store_true', help='Simple spliting text')
-    
+    parser = argparse.ArgumentParser(
+        description="Train model for Vietnamese text classification."
+    )
+    parser.add_argument(
+        "--train_path", type=str, required=True, help="Training data path"
+    )
+    parser.add_argument(
+        "--dev_path", type=str, required=True, help="Development data path"
+    )
+    parser.add_argument(
+        "--test_path", type=str, required=True, help="Testing data path"
+    )
+    parser.add_argument(
+        "--stopwords_path", type=str, required=True, help="Stopwords data path"
+    )
+    parser.add_argument("--use_model", type=str, required=True, help="Model name")
+    parser.add_argument(
+        "--use_dash", action="store_true", help="Use dash in preprocessor"
+    )
+    parser.add_argument(
+        "--use_simple", action="store_true", help="Simple spliting text"
+    )
+
     args = parser.parse_args()
 
     print("User's Train path:", args.train_path)
     print("User's Dev path:", args.dev_path)
     print("User's Test path:", args.test_path)
     print("User's Stopwords path:", args.stopwords_path)
+    print("User's model name: ", args.use_model)
     print("User's Use dash:", args.use_dash)
     print("User's Use simple:", args.use_simple)
-    
 
     # Cài đặt các gói cần thiết
-    
+
     print(f'Packages: {os.system("pip list")}')
 
     # Nạp dữ liệu
     data_loader = DataLoader(args.train_path, args.dev_path, args.test_path)
     data_loader.load_data()
     loader = data_loader.get_processed_data()
-    
+
     # Trích xuất dữ liệu
-    train_text = loader['train_text']
-    train_label = loader['train_labels']
-    test_text = loader['test_text']
-    test_label = loader['test_labels']
-    dev_text = loader['dev_text']
-    dev_label = loader['dev_labels']
-    unpreprocessed_label_train = loader['unprocessed_label_train']
-    unpreprocessed_label_test = loader['unprocessed_label_test']
-    unpreprocessed_label_dev = loader['unprocessed_label_dev']
+    train_text = loader["train_text"]
+    train_label = loader["train_labels"]
+    test_text = loader["test_text"]
+    test_label = loader["test_labels"]
+    dev_text = loader["dev_text"]
+    dev_label = loader["dev_labels"]
+    unpreprocessed_label_train = loader["unprocessed_label_train"]
+    unpreprocessed_label_test = loader["unprocessed_label_test"]
+    unpreprocessed_label_dev = loader["unprocessed_label_dev"]
 
     # Tiền xử lý văn bản
     preprocessor = VietnameseTextPreprocessor(stopwords_path=args.stopwords_path)
     use_dash = args.use_dash
-    
+
     # Xử lý các tập dữ liệu
     process_text = lambda texts: [
-        preprocessor.preprocess_text_vietnamese_to_tokens(text, isReturnTokens=True, isUsingDash=use_dash, isSimple=args.use_simple) 
+        preprocessor.preprocess_text_vietnamese_to_tokens(
+            text, isReturnTokens=True, isUsingDash=use_dash, isSimple=args.use_simple
+        )
         for text in texts
     ]
-    
+
     train_text_tokens = process_text(train_text)
     test_text_tokens = process_text(test_text)
     dev_text_tokens = process_text(dev_text)
 
-    train_text_preprocessed = [' '.join(tokens) for tokens in train_text_tokens]
-    test_text_preprocessed = [' '.join(tokens) for tokens in test_text_tokens]
-    dev_text_preprocessed = [' '.join(tokens) for tokens in dev_text_tokens]
+    train_text_preprocessed = [" ".join(tokens) for tokens in train_text_tokens]
+    test_text_preprocessed = [" ".join(tokens) for tokens in test_text_tokens]
+    dev_text_preprocessed = [" ".join(tokens) for tokens in dev_text_tokens]
 
-    print('top 5 train_text_tokens:', train_text_tokens[:5])
-    print('top 5 train_text_preprocessed:', train_text_preprocessed[:5])
-    print('top 5 test_text_tokens:', test_text_tokens[:5])
-    print('top 5 test_text_preprocessed:', test_text_preprocessed[:5])
-    print('top 5 dev_text_tokens:', dev_text_tokens[:5])
-    print('top 5 dev_text_preprocessed:', dev_text_preprocessed[:5])
+    print("top 5 train_text_tokens:", train_text_tokens[:5])
+    print("top 5 train_text_preprocessed:", train_text_preprocessed[:5])
+    print("top 5 test_text_tokens:", test_text_tokens[:5])
+    print("top 5 test_text_preprocessed:", test_text_preprocessed[:5])
+    print("top 5 dev_text_tokens:", dev_text_tokens[:5])
+    print("top 5 dev_text_preprocessed:", dev_text_preprocessed[:5])
 
     # Lưu dữ liệu đã xử lý
-    save_to_csv(train_text_preprocessed, unpreprocessed_label_train, 'processed_train.csv')
-    save_to_csv(test_text_preprocessed, unpreprocessed_label_test, 'processed_test.csv')
-    save_to_csv(dev_text_preprocessed, unpreprocessed_label_dev, 'processed_dev.csv')
-    print('Đã lưu các tập dữ liệu đã xử lý vào CSV.')
+    save_to_csv(
+        train_text_preprocessed, unpreprocessed_label_train, "processed_train.csv"
+    )
+    save_to_csv(test_text_preprocessed, unpreprocessed_label_test, "processed_test.csv")
+    save_to_csv(dev_text_preprocessed, unpreprocessed_label_dev, "processed_dev.csv")
+    print("Đã lưu các tập dữ liệu đã xử lý vào CSV.")
 
     # Huấn luyện mô hình Word2Vec
     print("\nTraining CBOW model...")
@@ -124,29 +144,35 @@ def main():
         train_text_tokens_from_sent = [sent.split() for sent in dev_train_combined]
     train_text_tokens_from_sent = train_text_tokens + dev_text_tokens
 
-    print('top 5 train_text_tokens_from_sent:', train_text_tokens_from_sent[:5])
+    print("top 5 train_text_tokens_from_sent:", train_text_tokens_from_sent[:5])
 
     model_cbow = Word2VecModel(sg=0)
     model_cbow.train(train_text_tokens_from_sent, epochs=15)
-    model_cbow.save('model_cbow')
+    model_cbow.save("model_cbow")
 
     print("\nTraining Skip-Gram model...")
     model_sg = Word2VecModel(sg=1)
     model_sg.train(train_text_tokens_from_sent, epochs=15)
-    model_sg.save('model_sg')
+    model_sg.save("model_sg")
 
     print(model_sg.get_vocab_dict())
 
     # Chuẩn bị dữ liệu cho model
     tokenizer = Tokenizer(filters='!"#$%&()*+,-./:;<=>?@[\\]^`{|}~\t\n')
     tokenizer.fit_on_texts(train_text_tokens_from_sent)
-    
+
     # Padding sequences
     max_len = 130
-    train_features = pad_sequences(tokenizer.texts_to_sequences(train_text_preprocessed), maxlen=max_len)
-    test_features = pad_sequences(tokenizer.texts_to_sequences(test_text_preprocessed), maxlen=max_len)
-    dev_features = pad_sequences(tokenizer.texts_to_sequences(dev_text_preprocessed), maxlen=max_len)
-    
+    train_features = pad_sequences(
+        tokenizer.texts_to_sequences(train_text_preprocessed), maxlen=max_len
+    )
+    test_features = pad_sequences(
+        tokenizer.texts_to_sequences(test_text_preprocessed), maxlen=max_len
+    )
+    dev_features = pad_sequences(
+        tokenizer.texts_to_sequences(dev_text_preprocessed), maxlen=max_len
+    )
+
     # Lưu tokenizer
     pickle.dump(tokenizer, open("tokenizer_data.pkl", "wb"))
 
@@ -156,24 +182,25 @@ def main():
 
     print("\nPreparing embedding matrix...")
     model_sg = Word2VecModel()
-    model_sg.load_model('model_sg.word2vec')
+    model_sg.load_model("model_sg.word2vec")
     embedding_matrix = model_sg.get_embedding_matrix(tokenizer)
 
     print("\nBuilding model...")
-    model = CustomModel(len(tokenizer.word_index)+1, embedding_matrix, input_length=max_len)
+    model = CustomModel(
+        len(tokenizer.word_index) + 1, embedding_matrix, input_length=max_len
+    )
     model.build_model()
     model.compile_model()
     print(train_label.shape)
     print(dev_label.shape)
     model.train(train_features, train_label, dev_features, dev_label, epochs=2)
-    
+
     # Đánh giá mô hình
     model.evaluate_model(test_features, test_label)
     preds = model.predict(test_features)
     preds = tf.round(preds).numpy()
     model.generate_classification_report(test_label, preds)
     model.plot_confusion_matrix(test_label, preds, is_print_terminal=True)
-
 
     hypermodel = CustomHyperModel(
         w2v_corpus=train_text_tokens_from_sent,
@@ -184,36 +211,39 @@ def main():
         X_val=dev_features,
         y_val=dev_label,
         X_test=test_features,
-        y_test=test_label
+        y_test=test_label,
     )
 
     tuner = kt.Hyperband(
         hypermodel=hypermodel,
-        objective='val_accuracy',
+        objective="val_accuracy",
         max_epochs=50,
         factor=3,
-        directory='hyper_tuning',
-        project_name='sentiment_analysis',
+        directory="hyper_tuning",
+        project_name="sentiment_analysis",
         hyperband_iterations=1,
         # distribution_strategy=tf.distribute.MirroredStrategy(),
-        overwrite=True
+        overwrite=True,
     )
 
     tuner.search()
 
     best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
 
-# Retrieve best Word2Vec params
-    print(f"""
+    # Retrieve best Word2Vec params
+    print(
+        f"""
     Best Word2Vec parameters:
     - Architecture: {'Skip-gram' if best_hps.get('w2v_sg') else 'CBOW'}
     - Vector Size: {best_hps.get('w2v_vector_size')}
     - Window Size: {best_hps.get('w2v_window')}
     - Min Count: {best_hps.get('w2v_min_count')}
-    """)
+    """
+    )
 
     # Retrieve best model
     best_model = tuner.get_best_models(num_models=1)[0]
+
 
 if __name__ == "__main__":
     main()
