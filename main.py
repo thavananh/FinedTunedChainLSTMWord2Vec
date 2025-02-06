@@ -46,6 +46,8 @@ def install_requirements(file_path="requirements.txt"):
         print(f"Lỗi không mong đợi: {e}")
 
 
+
+
 def main():
     # Thiết lập các tham số dòng lệnh
     parser = argparse.ArgumentParser(
@@ -62,6 +64,9 @@ def main():
     )
     parser.add_argument(
         "--stopwords_path", type=str, required=True, help="Stopwords data path"
+    )
+    parser.add_argument(
+        "--use_model", type=str, required=True, help="Use model type"
     )
     parser.add_argument("--use_model", type=str, required=True, help="Model name")
     parser.add_argument(
@@ -202,33 +207,70 @@ def main():
     model.generate_classification_report(test_label, preds)
     model.plot_confusion_matrix(test_label, preds, is_print_terminal=True)
 
-    hypermodel = CustomHyperModel(
-        w2v_corpus=train_text_tokens_from_sent,
-        tokenizer_data=tokenizer,
-        input_length=130,  # Match your input sequence length
-        X_train=train_features,
-        y_train=train_label,
-        X_val=dev_features,
-        y_val=dev_label,
-        X_test=test_features,
-        y_test=test_label,
-    )
+    if args.use_model == "A":
+        hypermodel = CustomHyperModel(
+            w2v_corpus=train_text_tokens_from_sent,
+            tokenizer_data=tokenizer,
+            input_length=130,  # Match your input sequence length
+            X_train=train_features,
+            y_train=train_label,
+            X_val=dev_features,
+            y_val=dev_label,
+            X_test=test_features,
+            y_test=test_label,
+        )
+        tuner = kt.Hyperband(
+            hypermodel=hypermodel,
+            objective="val_accuracy",
+            max_epochs=50,
+            factor=3,
+            directory="hyper_tuning",
+            project_name="sentiment_analysis",
+            hyperband_iterations=1,
+            # distribution_strategy=tf.distribute.MirroredStrategy(),
+            overwrite=True,
+        )
+        tuner.search()
+        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    elif args.use_model  == "B":
+        hypermodel = CustomHyperModel(
+            w2v_corpus=train_text_tokens_from_sent,
+            tokenizer_data=tokenizer,
+            input_length=130,  # Match your input sequence length
+            X_train=train_features,
+            y_train=train_label,
+            X_val=dev_features,
+            y_val=dev_label,
+            X_test=test_features,
+            y_test=test_label,
+        )
+        tuner = kt.Hyperband(
+            hypermodel=hypermodel,
+            objective="val_accuracy",
+            max_epochs=50,
+            factor=3,
+            directory="hyper_tuning",
+            project_name="sentiment_analysis",
+            hyperband_iterations=1,
+            # distribution_strategy=tf.distribute.MirroredStrategy(),
+            overwrite=True,
+        )
+        tuner.search()
+        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    elif choice == "C":
+        return "model_2"
+    elif choice == 'D':
+        return "model_3"
+    elif choice == 'E':
+        return "model_4"
+    elif choice == 'czhou':
+        return "czhou_lstm"
+    elif choice == 'kim':
+        return "kim_cnn"
+    
+    
 
-    tuner = kt.Hyperband(
-        hypermodel=hypermodel,
-        objective="val_accuracy",
-        max_epochs=50,
-        factor=3,
-        directory="hyper_tuning",
-        project_name="sentiment_analysis",
-        hyperband_iterations=1,
-        # distribution_strategy=tf.distribute.MirroredStrategy(),
-        overwrite=True,
-    )
-
-    tuner.search()
-
-    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
+    
 
     # Retrieve best Word2Vec params
     print(

@@ -34,7 +34,7 @@ log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 
-class CustomModel_1:
+class CustomModel_3:
     def __init__(
         self,
         data_vocab_size,

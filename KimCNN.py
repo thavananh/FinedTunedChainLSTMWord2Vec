@@ -46,7 +46,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 from Block import *
 
 
-class CustomModel:
+class KimCNN:
     def __init__(
         self,
         data_vocab_size,

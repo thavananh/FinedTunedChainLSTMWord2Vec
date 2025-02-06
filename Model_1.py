@@ -117,6 +117,7 @@ class CustomModel_1:
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
             dropout_rate=self.dense_attributes_1.dropout_rate,
+            activation=self.dense_attributes_1.activation
         )
 
         dense_block_3 = DenseBlock(
