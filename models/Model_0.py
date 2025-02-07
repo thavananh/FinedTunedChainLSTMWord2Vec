@@ -27,14 +27,15 @@ from sklearn.metrics import (
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
-from Attribute import *
-from Block import *
+from base.BaseModel import BaseModel  # Quan trọng: Import BaseModel
+from utils.Attribute import *
+from utils.Block import *
 
 log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 
-class CustomModel_3:
+class CustomModel:
     def __init__(
         self,
         data_vocab_size,
@@ -42,14 +43,16 @@ class CustomModel_3:
         input_length=110,
         cnn_attributes_1=CnnAtribute(100, 1),
         cnn_attributes_2=CnnAtribute(100, 2),
+        cnn_attributes_3=CnnAtribute(200, 3),
+        cnn_attributes_4=CnnAtribute(200, 4),
         lstm_attributes_1=LSTMAttribute(300),
+        lstm_attributes_2=LSTMAttribute(300),
         multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
         dense_attributes_1=DenseAttribute(256),
+        dense_attributes_2=DenseAttribute(64),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
         dropout_combine=0.0,
-        dropout_attention_pooled=0.0,
-        attention_weight_activation='sigmoid'
     ):
         self.data_vocab_size = data_vocab_size
         self.embedding_matrix = embedding_matrix
@@ -63,16 +66,20 @@ class CustomModel_3:
         self.dropout_features = dropout_features
         self.cnn_attributes_1 = cnn_attributes_1
         self.cnn_attributes_2 = cnn_attributes_2
+        self.cnn_attributes_3 = cnn_attributes_3
+        self.cnn_attributes_4 = cnn_attributes_4
         self.lstm_attributes_1 = lstm_attributes_1
+        self.lstm_attributes_2 = lstm_attributes_2
         self.multi_head_attention_attributes = multi_head_attention_attributes
-        self.dropout_attention_pooled = dropout_attention_pooled
         self.dropout_combine = dropout_combine
         self.dense_attributes_1 = dense_attributes_1
+        self.dense_attributes_2 = dense_attributes_2
         self.dense_attributes_3 = dense_attributes_3
-        self.attention_weight_activation = attention_weight_activation
 
     def build_model(self):
         input_layer = Input(shape=(self.input_length,))
+
+        # Embedding layer
         x = Embedding(
             input_dim=self.data_vocab_size,
             output_dim=self.embedding_output_dim,
@@ -80,8 +87,9 @@ class CustomModel_3:
             weights=[self.embedding_matrix],
             trainable=False,
         )(input_layer)
-        x = Dropout(self.dropout_features)(x)
-        # Convolutional Path
+        x = Dropout(0.5)(x)
+
+        # Convolutional block
         cnn_block_1 = Conv1DBlock(
             filters=self.cnn_attributes_1.filter_size,
             kernel_size=self.cnn_attributes_1.kernel_size,
@@ -92,16 +100,37 @@ class CustomModel_3:
             kernel_size=self.cnn_attributes_2.kernel_size,
             dropout_rate=self.cnn_attributes_2.dropout_rate,
         )
+        cnn_block_3 = Conv1DBlock(
+            filters=self.cnn_attributes_3.filter_size,
+            kernel_size=self.cnn_attributes_3.kernel_size,
+            dropout_rate=self.cnn_attributes_3.dropout_rate,
+        )
+        cnn_block_4 = Conv1DBlock(
+            filters=self.cnn_attributes_4.filter_size,
+            kernel_size=self.cnn_attributes_4.kernel_size,
+            dropout_rate=self.cnn_attributes_4.dropout_rate,
+        )
 
         cnn = cnn_block_1(x)
         cnn = cnn_block_2(cnn)
+        cnn = cnn_block_3(cnn)
+        cnn = cnn_block_4(cnn)
 
-        # Recurrent Path
-        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_2.dropout_rate)
+        # Bidirectional LSTM
+        lstm_block_1 = LSTMBlock(
+            units=self.lstm_attributes_1.units,
+            dropout_rate=self.lstm_attributes_1.dropout_rate,
+        )
+
+        lstm_block_2 = LSTMBlock(
+            units=self.lstm_attributes_2.units,
+            dropout_rate=self.lstm_attributes_2.dropout_rate,
+        )
 
         lstm = lstm_block_1(cnn)
-        
-        # Self-Attention Layer
+        lstm = lstm_block_2(lstm)
+
+        # Multi-head Attention
         multi_head_attention_block = MultiHeadAttentionBlock(
             num_heads=self.multi_head_attention_attributes.num_heads,
             key_dim=self.multi_head_attention_attributes.key_dim,
@@ -109,41 +138,41 @@ class CustomModel_3:
         )
         attention = multi_head_attention_block(lstm)
 
-        attention_weights = Dense(1, activation=self.attention_weight_activation)(attention)  # Learnable attention weights
-        attention_pooled = ReduceSumLayer(axis=1)(attention * attention_weights)  # Use custom layer
-        attention_pooled = Dropout(self)(attention_pooled)
+        # Feature pooling and concatenation
+        cnn_pool = GlobalMaxPooling1D()(cnn)
+        attn_pool = GlobalMaxPooling1D()(attention)
+        combined = Concatenate()([cnn_pool, attn_pool])
+        combined = LayerNormalization()(combined)
+        combined = Dropout(self.dropout_combine)(combined)
 
-        cnn_pooled = GlobalMaxPooling1D()(cnn)         
-
-        # Concatenate the pooled features
-        combine_feature = Concatenate()([cnn_pooled, attention_pooled])
-        combine_feature = LayerNormalization()(combine_feature)
-        combine_feature = Dropout(self.dropout_combine)(combine_feature)  
-        
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
             dropout_rate=self.dense_attributes_1.dropout_rate,
-            activation=self.dense_attributes_1.activation
+            activation=self.dense_attributes_1.activation,
         )
-        
+        dense_block_2 = DenseBlock(
+            units=self.dense_attributes_2.units,
+            dropout_rate=self.dense_attributes_2.dropout_rate,
+            activation=self.dense_attributes_2.activation,
+        )
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,
             dropout_rate=self.dense_attributes_3.dropout_rate,
             activation=self.dense_attributes_3.activation,
         )
 
-        dense = dense_block_1(combine_feature)
+        dense = dense_block_1(combined)
+        dense = dense_block_2(dense)
         output = dense_block_3(dense)
 
         self.model = Model(inputs=input_layer, outputs=output)
 
     def compile_model(self, learning_rate=1e-4, weight_decay=0.0):
-        lr_schedule = WarmUp(initial_lr=learning_rate, warmup_steps=500, decay_steps=10000)
-        optimizer = AdamW(learning_rate=lr_schedule, weight_decay=weight_decay)
+        optimizer = AdamW(learning_rate=learning_rate, weight_decay=weight_decay)
         self.model.compile(
             optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"]
         )
-        
+
     def train(
         self, X_train, y_train, X_val, y_val, epochs=50, batch_size=64, patience=500
     ):

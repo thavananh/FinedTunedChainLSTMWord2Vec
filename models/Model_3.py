@@ -27,13 +27,15 @@ from sklearn.metrics import (
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
-from Attribute import *
-from Block import *
+from base.BaseModel import BaseModel  # Quan trọng: Import BaseModel
+from utils.Attribute import *
+from utils.Block import *
+
 log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 
-class CustomModel_1:
+class CustomModel_3(BaseModel):
     def __init__(
         self,
         data_vocab_size,
@@ -47,6 +49,8 @@ class CustomModel_1:
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
         dropout_combine=0.0,
+        dropout_attention_pooled=0.0,
+        attention_weight_activation='sigmoid'
     ):
         self.data_vocab_size = data_vocab_size
         self.embedding_matrix = embedding_matrix
@@ -62,14 +66,14 @@ class CustomModel_1:
         self.cnn_attributes_2 = cnn_attributes_2
         self.lstm_attributes_1 = lstm_attributes_1
         self.multi_head_attention_attributes = multi_head_attention_attributes
+        self.dropout_attention_pooled = dropout_attention_pooled
         self.dropout_combine = dropout_combine
         self.dense_attributes_1 = dense_attributes_1
         self.dense_attributes_3 = dense_attributes_3
+        self.attention_weight_activation = attention_weight_activation
 
     def build_model(self):
         input_layer = Input(shape=(self.input_length,))
-
-        # Embedding layer
         x = Embedding(
             input_dim=self.data_vocab_size,
             output_dim=self.embedding_output_dim,
@@ -77,9 +81,8 @@ class CustomModel_1:
             weights=[self.embedding_matrix],
             trainable=False,
         )(input_layer)
-        x = Dropout(0.5)(x)
-
-        # Convolutional block
+        x = Dropout(self.dropout_features)(x)
+        # Convolutional Path
         cnn_block_1 = Conv1DBlock(
             filters=self.cnn_attributes_1.filter_size,
             kernel_size=self.cnn_attributes_1.kernel_size,
@@ -93,117 +96,44 @@ class CustomModel_1:
 
         cnn = cnn_block_1(x)
         cnn = cnn_block_2(cnn)
-        # Bidirectional LSTM
-        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_1.dropout_rate)
-        lstm_block_2 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_2.dropout_rate)
+
+        # Recurrent Path
+        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_2.dropout_rate)
 
         lstm = lstm_block_1(cnn)
-        lstm = lstm_block_2(lstm)
-
-        # Multi-head Attention
+        
+        # Self-Attention Layer
         multi_head_attention_block = MultiHeadAttentionBlock(
             num_heads=self.multi_head_attention_attributes.num_heads,
             key_dim=self.multi_head_attention_attributes.key_dim,
             dropout_rate=self.multi_head_attention_attributes.dropout_rate,
         )
         attention = multi_head_attention_block(lstm)
-        
-        cnn_pool = GlobalMaxPooling1D()(cnn)
-        attn_pool = GlobalMaxPooling1D()(attention)
-        combined = Concatenate()([cnn_pool, attn_pool])
-        combined = LayerNormalization()(combined)
-        combined = Dropout(self.dropout_combine)(combined)
 
+        attention_weights = Dense(1, activation=self.attention_weight_activation)(attention)  # Learnable attention weights
+        attention_pooled = ReduceSumLayer(axis=1)(attention * attention_weights)  # Use custom layer
+        attention_pooled = Dropout(self.dropout_attention_pooled)(attention_pooled)
+
+        cnn_pooled = GlobalMaxPooling1D()(cnn)         
+
+        # Concatenate the pooled features
+        combine_feature = Concatenate()([cnn_pooled, attention_pooled])
+        combine_feature = LayerNormalization()(combine_feature)
+        combine_feature = Dropout(self.dropout_combine)(combine_feature)  
+        
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
             dropout_rate=self.dense_attributes_1.dropout_rate,
             activation=self.dense_attributes_1.activation
         )
-
+        
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,
             dropout_rate=self.dense_attributes_3.dropout_rate,
             activation=self.dense_attributes_3.activation,
         )
 
-        dense = dense_block_1(combined)
-
+        dense = dense_block_1(combine_feature)
         output = dense_block_3(dense)
 
         self.model = Model(inputs=input_layer, outputs=output)
-
-    def compile_model(self, learning_rate=1e-4, weight_decay=0.0):
-        lr_schedule = WarmUp(initial_lr=learning_rate, warmup_steps=500, decay_steps=10000)
-        optimizer = AdamW(learning_rate=lr_schedule, weight_decay=weight_decay)
-        self.model.compile(
-            optimizer=optimizer, loss="categorical_crossentropy", metrics=["accuracy"]
-        )
-
-    def train(
-        self, X_train, y_train, X_val, y_val, epochs=50, batch_size=64, patience=500
-    ):
-        early_stop = EarlyStopping(
-            monitor="val_accuracy", patience=patience, restore_best_weights=True
-        )
-        self.history = self.model.fit(
-            X_train,
-            y_train,
-            validation_data=(X_val, y_val),
-            epochs=epochs,
-            batch_size=batch_size,
-            callbacks=[
-                early_stop,
-                tensorboard_callback,
-            ],  # Thêm tensorboard callback vào
-            verbose=1,
-        )
-
-    def evaluate_model(self, X_test, y_test):
-        return self.model.evaluate(X_test, y_test, verbose=0)
-
-    def predict(self, X_test):
-        return self.model.predict(X_test, verbose=0)
-
-    def generate_classification_report(
-        self, y_true, y_pred, labels=["Negative", "Neutral", "Positive"]
-    ):
-        print(y_true)
-        print(y_pred)
-        y_true_labels = np.argmax(y_true, axis=1)
-        y_pred_labels = np.argmax(y_pred, axis=1)
-        print(
-            classification_report(
-                y_true_labels,
-                y_pred_labels,
-                target_names=labels,
-                zero_division=0,
-                digits=3,
-            )
-        )
-
-    def plot_confusion_matrix(
-        self,
-        y_true,
-        y_pred,
-        labels=["Negative", "Neutral", "Positive"],
-        is_print_terminal=False,
-    ):
-        y_true_labels = np.argmax(y_true, axis=1)
-        y_pred_labels = np.argmax(y_pred, axis=1)
-
-        # Compute confusion matrix
-        cm = confusion_matrix(y_true_labels, y_pred_labels, labels=[0, 1, 2])
-
-        # Optionally print confusion matrix in the terminal
-        if is_print_terminal:
-            print("\nConfusion Matrix:\n")
-            print("    Negative  Neutral  Positive\n")
-            print(f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n")
-            print(f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n")
-            print(f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n")
-        else:
-            disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
-            disp.plot(cmap="Blues")
-            plt.grid(False)
-            plt.title("Bi-LSTM with Multi-Head Attention")
-            plt.show()
