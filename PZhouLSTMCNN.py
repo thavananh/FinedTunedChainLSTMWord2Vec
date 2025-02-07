@@ -39,15 +39,10 @@ class CustomModel_4:
         data_vocab_size,
         embedding_matrix,
         input_length=110,
-        cnn_attributes_1=CnnAtribute(100, 1),
-        cnn_attributes_2=CnnAtribute(100, 2),
+        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
         lstm_attributes_1=LSTMAttribute(300),
-        multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
-        dropout_weight_attention = 0.2,
-        dense_attributes_1=DenseAttribute(256),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
-        dropout_combine=0.0,
     ):
         self.data_vocab_size = data_vocab_size
         self.embedding_matrix = embedding_matrix
@@ -55,17 +50,11 @@ class CustomModel_4:
         self.model = None
         self.history = None
 
-        # Model hyperparameters
         self.embedding_output_dim = embedding_matrix.shape[1]
         self.initializer = tf.keras.initializers.GlorotNormal()
+        self.cnn_2d_attribute_1 = cnn_2d_attribute_1
         self.dropout_features = dropout_features
-        self.cnn_attributes_1 = cnn_attributes_1
-        self.cnn_attributes_2 = cnn_attributes_2
         self.lstm_attributes_1 = lstm_attributes_1
-        self.multi_head_attention_attributes = multi_head_attention_attributes
-        self.dropout_combine = dropout_combine
-        self.dropout_weight_attention = dropout_weight_attention
-        self.dense_attributes_1 = dense_attributes_1
         self.dense_attributes_3 = dense_attributes_3
 
     def build_model(self):
@@ -77,57 +66,34 @@ class CustomModel_4:
             weights=[self.embedding_matrix],
             trainable=False,
         )(input_layer)
+        x = Dropout(self.dropout_features)(x)
 
-        feature = Dropout(0.5)(feature)  
-
-
-        cnn_block_1 = Conv1DBlock(
-            filters=self.cnn_attributes_1.filter_size,
-            kernel_size=self.cnn_attributes_1.kernel_size,
-            dropout_rate=self.cnn_attributes_1.dropout_rate,
-        )
-        cnn_block_2 = Conv1DBlock(
-            filters=self.cnn_attributes_2.filter_size,
-            kernel_size=self.cnn_attributes_2.kernel_size,
-            dropout_rate=self.cnn_attributes_2.dropout_rate,
+        lstm_block_1 = LSTMBlock(
+            units=self.lstm_attributes_1.units,
+            dropout_rate=self.lstm_attributes_1.dropout_rate,
         )
 
-        cnn = cnn_block_1(x)
-        cnn = cnn_block_2(cnn)
+        lstm = lstm_block_1(x)
 
-        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_1.dropout_rate)
+        blstm_output_reshaped = tf.reshape(lstm, shape=[-1, tf.shape(lstm)[1], 2, self.lstm_attributes_1.units]) # for reduce sum
+        conv_input = tf.reduce_sum(blstm_output_reshaped, axis=2) # for reduce sum
+        conv_input_expanded = tf.expand_dims(conv_input, axis=-1) # Add channel dimension
 
-        lstm = lstm_block_1(cnn)
 
-        multi_head_attention_block = MultiHeadAttentionBlock(
-            num_heads=self.multi_head_attention_attributes.num_heads,
-            key_dim=self.multi_head_attention_attributes.key_dim,
-            dropout_rate=self.multi_head_attention_attributes.dropout_rate,
+        conv2d_block_1 = Conv2DBlock(
+            filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
         )
-        attention = multi_head_attention_block(lstm)
-        attention_weight_block = AttentionWeightBlock(dropout_rate=self.dropout_weight_attention)
 
-        attention_weight_pooled = attention_weight_block(attention)
-        cnn_pooled = GlobalMaxPooling1D()(cnn)         
-
-        combine_feature = Concatenate()([cnn_pooled, attention_weight_pooled])
-        combine_feature = LayerNormalization()(combine_feature)
-        combine_feature = Dropout(self.dropout_weight_attention)(combine_feature)  
-        
-        dense_block_1 = DenseBlock(
-            units=self.dense_attributes_1.units,
-            dropout_rate=self.dense_attributes_1.dropout_rate,
-            activation=self.dense_attributes_1.activation
-        )
+        cnn_2d = conv2d_block_1(conv_input_expanded)
+        flatten_output = layers.Flatten()(cnn_2d)
 
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,
             dropout_rate=self.dense_attributes_3.dropout_rate,
             activation=self.dense_attributes_3.activation,
         )
+        output = dense_block_3(flatten_output)
 
-        dense = dense_block_1(combine_feature)
-        output = dense_block_3(dense)
         self.model = Model(inputs=input_layer, outputs=output)
 
     def compile_model(self, learning_rate=1e-4, weight_decay=0.0):
@@ -195,7 +161,7 @@ class CustomModel_4:
         # Optionally print confusion matrix in the terminal
         if is_print_terminal:
             print("\nConfusion Matrix:\n")
-            print("    Negative  Neutral  Positive\n")
+            print("             Negative        Neutral         Positive\n")
             print(f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n")
             print(f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n")
             print(f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n")

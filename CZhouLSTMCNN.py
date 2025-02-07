@@ -254,7 +254,7 @@ class CZhouLSTMModel:
         # Optionally print confusion matrix in the terminal
         if is_print_terminal:
             print("\nConfusion Matrix:\n")
-            print("    Negative  Neutral  Positive\n")
+            print("             Negative        Neutral         Positive\n")
             print(f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n")
             print(f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n")
             print(f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n")

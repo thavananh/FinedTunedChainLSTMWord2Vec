@@ -17,6 +17,7 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, BatchNormalization, GlobalMaxPooling2D, Dropout
 from tensorflow.keras import Model
 from tensorflow.keras import layers
+from torch import dropout
 class Conv1DBlock(tf.keras.layers.Layer):
     def __init__(
         self,
@@ -47,10 +48,9 @@ class LSTMBlock(tf.keras.layers.Layer):
     def __init__(self, units=300, dropout_rate=0.0, **kwargs):
         super(LSTMBlock, self).__init__(**kwargs)
 
-        self.lstm = Bidirectional(LSTM(units, return_sequences=True))
+        self.lstm = Bidirectional(LSTM(units, dropout=dropout_rate, return_sequences=True))
         self.pool = MaxPool1D()
         self.bn = BatchNormalization()
-        self.dropout = Dropout(dropout_rate)
 
     def call(self, inputs, training=None):
         x = self.lstm(inputs)

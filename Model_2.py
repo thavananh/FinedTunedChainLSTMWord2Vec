@@ -1,4 +1,5 @@
 from calendar import c
+from math import comb
 from regex import B
 import tensorflow as tf
 from tensorflow.keras.layers import (
@@ -71,8 +72,6 @@ class CustomModel_2:
 
     def build_model(self):
         input_layer = Input(shape=(self.input_length,))
-
-        # Embedding layer
         x = Embedding(
             input_dim=self.data_vocab_size,
             output_dim=self.embedding_output_dim,
@@ -117,11 +116,13 @@ class CustomModel_2:
             dropout_rate=self.dense_attributes_1.dropout_rate,
             activation=self.dense_attributes_1.activation
         )
+
         dense_block_2 = DenseBlock(
             units=self.dense_attributes_2.units,
             dropout_rate=self.dense_attributes_2.dropout_rate,
-            activation=self.dense_attributes_2.activation
+            activation=self.dense_attributes_2.activation,
         )
+        
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,
             dropout_rate=self.dense_attributes_3.dropout_rate,
@@ -131,7 +132,6 @@ class CustomModel_2:
         dense = dense_block_1(combined)
         dense = dense_block_2(dense)
         output = dense_block_3(dense)
-
         self.model = Model(inputs=input_layer, outputs=output)
 
     def compile_model(self, learning_rate=1e-4, weight_decay=0.0):
@@ -198,7 +198,7 @@ class CustomModel_2:
         # Optionally print confusion matrix in the terminal
         if is_print_terminal:
             print("\nConfusion Matrix:\n")
-            print("    Negative  Neutral  Positive\n")
+            print("             Negative        Neutral         Positive\n")
             print(f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n")
             print(f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n")
             print(f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n")

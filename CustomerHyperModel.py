@@ -9,6 +9,9 @@ from gensim.models import KeyedVectors
 import tensorflow as tf
 from Model import CustomModel
 
+import yaml
+
+
 class CustomHyperModel(kt.HyperModel):
     def __init__(self, w2v_corpus, tokenizer_data, input_length, X_train, y_train, X_val, y_val, X_test, y_test, model_name):
         super().__init__()
@@ -24,9 +27,17 @@ class CustomHyperModel(kt.HyperModel):
         self.strategy = tf.distribute.MirroredStrategy()
         self.model_name = model_name
 
+    def load_config(self, config_path):
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
+        return config
+
+    
     def build(self, hp):
         # Word2Vecc Hyperparameters
         # with self.strategy.scope():
+        config = self.load_config('config.yaml')
+        custom_model_config = config.get(self.model_name, {})
         w2v_params = {
             'sg': hp.Choice('w2v_sg', [1]),
             'vector_size': hp.Int('w2v_vector_size', 100, 300, step=100),
