@@ -30,17 +30,18 @@ from tensorflow.keras.callbacks import TensorBoard
 from base.BaseModel import BaseModel  # Quan trọng: Import BaseModel
 from utils.Attribute import *
 from utils.Block import *
+
 log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 
-class CustomModel_4(BaseModel):
+class PZhouLSTMCNNModel(BaseModel):
     def __init__(
         self,
         data_vocab_size,
         embedding_matrix,
         input_length=110,
-        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_1=Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
         lstm_attributes_1=LSTMAttribute(300),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
@@ -76,13 +77,19 @@ class CustomModel_4(BaseModel):
 
         lstm = lstm_block_1(x)
 
-        blstm_output_reshaped = tf.reshape(lstm, shape=[-1, tf.shape(lstm)[1], 2, self.lstm_attributes_1.units]) # for reduce sum
-        conv_input = tf.reduce_sum(blstm_output_reshaped, axis=2) # for reduce sum
-        conv_input_expanded = tf.expand_dims(conv_input, axis=-1) # Add channel dimension
-
+        blstm_output_reshaped = tf.reshape(
+            lstm, shape=[-1, tf.shape(lstm)[1], 2, self.lstm_attributes_1.units]
+        )  # for reduce sum
+        conv_input = tf.reduce_sum(blstm_output_reshaped, axis=2)  # for reduce sum
+        conv_input_expanded = tf.expand_dims(
+            conv_input, axis=-1
+        )  # Add channel dimension
 
         conv2d_block_1 = Conv2DBlock(
-            filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
+            filters=self.cnn_2d_attribute_1.filter_size,
+            kernel_size=self.cnn_2d_attribute_1.kernel_size,
+            activation=self.cnn_2d_attribute_1.activation,
+            padding=self.cnn_2d_attribute_1.padding,
         )
 
         cnn_2d = conv2d_block_1(conv_input_expanded)
@@ -96,4 +103,3 @@ class CustomModel_4(BaseModel):
         output = dense_block_3(flatten_output)
 
         self.model = Model(inputs=input_layer, outputs=output)
-

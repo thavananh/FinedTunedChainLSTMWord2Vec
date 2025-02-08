@@ -215,12 +215,6 @@ CustomerModel_0:
     options: ['silu']
     name: dense_2_activation
 
-  dense_3_units:
-    type: int
-    range: [64, 512]
-    step: 64
-    name: dense_3_units
-
   dense_3_dropout_rate:
     type: float
     range: [0.0, 0.5]
@@ -302,19 +296,6 @@ CustomerModel_1:
     max: 0.5
     step: 0.1
 
-  lstm_2_units:
-    type: int
-    min: 64
-    max: 512
-    step: 64
-
-  lstm_2_dropout_rate:
-    type: float
-    min: 0.0
-    max: 0.5
-    step: 0.1
-
-  # Multi-head Attention-related hyperparameters
   multi_head_attention_num_heads:
     type: int
     min: 4
@@ -350,12 +331,6 @@ CustomerModel_1:
     type: choice
     options: ['silu']
     name: dense_1_activation
-
-  dense_3_units:
-    type: int
-    min: 64
-    max: 512
-    step: 64
 
   dense_3_dropout_rate:
     type: float
@@ -483,12 +458,6 @@ CustomerModel_2:
     options: ['silu']
     name: dense_attributes_2_activation
 
-  dense_attributes_3_units:
-    type: int
-    range: [64, 512]
-    step: 64
-    name: dense_attributes_3_units
-
   dense_attributes_3_dropout_rate:
     type: float
     range: [0.0, 0.5]
@@ -530,6 +499,11 @@ CustomerModel_3:
     range: [0.0, 0.5]
     step: 0.1
     name: dropout_attention_pooled
+
+  attention_weight_activation:
+    type: choice
+    options: ['softmax', 'log_softmax']
+    name: attention_weight_activation
 
   # CNN-related hyperparameters
   cnn_1_filter_size:
@@ -637,13 +611,6 @@ CustomerModel_3:
     type: choice
     options: ['silu']
     name: dense_1_activation
-
-
-  dense_3_units:
-    type: int
-    range: [64, 512]
-    step: 64
-    name: dense_3_units
 
   dense_3_dropout_rate:
     type: float
@@ -826,11 +793,16 @@ CZhouLSTMCNN:
     step: 32
     name: cnn_2d_1_filter_size
 
-  cnn_2d_1_kernel_size:
+  cnn_2d_1_kernel_size_height:
     type: int
-    range: [2, 5] # Changed range to be more suitable for 2D kernels, and different from 1D to allow independent tuning
+    range: [2, 5]
     step: 1
-    name: cnn_2d_1_kernel_size
+    name: cnn_2d_1_kernel_size_height
+  cnn_2d_1_kernel_size_width:
+    type: int
+    range: [2, 5]
+    step: 1
+    name: cnn_2d_1_kernel_size_width
 
   cnn_2d_1_padding:
     type: choice
@@ -848,11 +820,16 @@ CZhouLSTMCNN:
     step: 32
     name: cnn_2d_2_filter_size
 
-  cnn_2d_2_kernel_size:
+  cnn_2d_2_kernel_size_height:
     type: int
-    range: [2, 5] # Changed range to be more suitable for 2D kernels, and different from 1D to allow independent tuning
+    range: [2, 5]
     step: 1
-    name: cnn_2d_2_kernel_size
+    name: cnn_2d_1_kernel_size_height
+  cnn_2d_2_kernel_size_width:
+    type: int
+    range: [2, 5]
+    step: 1
+    name: cnn_2d_1_kernel_size_width
 
   cnn_2d_2_padding:
     type: choice
@@ -880,12 +857,6 @@ CZhouLSTMCNN:
     type: choice
     options: ['silu']
     name: dense_1_activation
-
-  dense_3_units:
-    type: int
-    range: [64, 512]
-    step: 64
-    name: dense_3_units
 
   dense_3_dropout_rate:
     type: float
@@ -948,11 +919,16 @@ KimCNN:
     step: 32
     name: cnn_2d_2_filter_size
 
-  cnn_2d_2_kernel_size:
+  cnn_2d_1_kernel_size_height:
     type: int
-    range: [2, 5] # Changed range to be more suitable for 2D kernels
+    range: [2, 5]
     step: 1
-    name: cnn_2d_2_kernel_size
+    name: cnn_2d_1_kernel_size_height
+  cnn_2d_1_kernel_size_width:
+    type: int
+    range: [2, 5]
+    step: 1
+    name: cnn_2d_1_kernel_size_width
 
   cnn_2d_2_padding:
     type: choice
@@ -965,11 +941,7 @@ KimCNN:
     name: cnn_2d_2_activation
 
   # Dense-related hyperparameters
-  dense_3_units:
-    type: int
-    range: [64, 512]
-    step: 64
-    name: dense_3_units
+
 
   dense_3_dropout_rate:
     type: float
@@ -1037,13 +1009,6 @@ PZhouLSTMCNN:
     type: choice
     options: ['silu']
     name: cnn_2d_1_activation
-
-  # Dense-related hyperparameters
-  dense_3_units:
-    type: int
-    range: [64, 512]
-    step: 64
-    name: dense_3_units
 
   dense_3_dropout_rate:
     type: float

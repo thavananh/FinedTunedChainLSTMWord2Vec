@@ -6,6 +6,8 @@ from sklearn.metrics import classification_report, confusion_matrix, ConfusionMa
 import numpy as np
 import matplotlib.pyplot as plt
 
+from utils.Attribute import WarmUp
+
 class BaseModel:
     def __init__(self, input_length, dropout_combine, dense_attributes_3, log_dir="logs"):
         self.input_length = input_length

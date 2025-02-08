@@ -42,13 +42,10 @@ from base.BaseModel import BaseModel  # Quan trọng: Import BaseModel
 from utils.Attribute import *
 from utils.Block import *
 
-
 log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
-
-
-class KimCNN(BaseModel):
+class KimCNNModel(BaseModel):
     def __init__(
         self,
         data_vocab_size,
@@ -58,7 +55,6 @@ class KimCNN(BaseModel):
         cnn_2d_attribute_2 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
-        dropout_combine=0.0,
     ):
         self.data_vocab_size = data_vocab_size
         self.embedding_matrix = embedding_matrix
@@ -72,8 +68,6 @@ class KimCNN(BaseModel):
         self.dropout_features = dropout_features
         self.cnn_2d_attribute_1 = cnn_2d_attribute_1
         self.cnn_2d_attribute_2 = cnn_2d_attribute_2
-        self.dropout_combine = dropout_combine
-
         self.dense_attributes_3 = dense_attributes_3
 
     def build_model(self):
@@ -101,12 +95,9 @@ class KimCNN(BaseModel):
         
         x_stacked = tf.stack([x, x_1], axis=1)
 
-
-        ### Conv2D Path ###
-        # Reshape for Conv2D: (batch_size, height, width, channels)
         conv2d_input = Reshape((self.input_length, self.embedding_output_dim, 1))(
             x_stacked
-        )  # (batch_size, 110, 300, 1)
+        )
 
         conv2d_block_1 = Conv2DBlock(
             filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
@@ -117,9 +108,7 @@ class KimCNN(BaseModel):
 
         cnn_2d = conv2d_block_1(conv2d_input)
         cnn_2d = conv2d_block_2(cnn_2d)
-
         cnn_2d_pooled = GlobalMaxPooling2D(cnn_2d)
-
 
         dense_block_3 = DenseBlock(
             units=self.dense_attributes_3.units,

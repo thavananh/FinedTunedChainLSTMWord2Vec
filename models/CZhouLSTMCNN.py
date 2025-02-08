@@ -42,7 +42,7 @@ log_dir = "logs"
 tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=1)
 
 
-class CZhouLSTMModel(BaseModel):
+class CZhouLSTMCNNModel(BaseModel):
     def __init__(
         self,
         data_vocab_size,
@@ -52,8 +52,8 @@ class CZhouLSTMModel(BaseModel):
         cnn_attributes_2=CnnAtribute(100, 2),
         cnn_attributes_3=CnnAtribute(200, 3),
         cnn_attributes_4=CnnAtribute(200, 4),
-        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
-        cnn_2d_attribute_2 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_1=Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_2=Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
         lstm_attributes_1=LSTMAttribute(300),
         lstm_attributes_2=LSTMAttribute(300),
         dense_attributes_1=DenseAttribute(256),
@@ -79,7 +79,7 @@ class CZhouLSTMModel(BaseModel):
         self.cnn_2d_attribute_2 = cnn_2d_attribute_2
         self.lstm_attributes_1 = lstm_attributes_1
         self.lstm_attributes_2 = lstm_attributes_2
- 
+
         self.dropout_combine = dropout_combine
         self.dense_attributes_1 = dense_attributes_1
         self.dense_attributes_3 = dense_attributes_3
@@ -122,21 +122,31 @@ class CZhouLSTMModel(BaseModel):
         cnn = cnn_block_3(cnn)
         cnn = cnn_block_4(cnn)
 
-        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_1.dropout_rate)
-        lstm_block_2 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_2.dropout_rate)
+        lstm_block_1 = LSTMBlock(
+            units=self.lstm_attributes_1.units,
+            dropout_rate=self.lstm_attributes_1.dropout_rate,
+        )
+        lstm_block_2 = LSTMBlock(
+            units=self.lstm_attributes_1.units,
+            dropout_rate=self.lstm_attributes_2.dropout_rate,
+        )
 
         lstm = lstm_block_1(cnn)
         lstm = lstm_block_2(lstm)
 
-        conv2d_input = Reshape((self.input_length, self.embedding_output_dim, 1))(
-            x
-        )
+        conv2d_input = Reshape((self.input_length, self.embedding_output_dim, 1))(x)
 
         conv2d_block_1 = Conv2DBlock(
-            filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
+            filters=self.cnn_2d_attribute_1.filter_size,
+            kernel_size=self.cnn_2d_attribute_1.kernel_size,
+            activation=self.cnn_2d_attribute_1.activation,
+            padding=self.cnn_2d_attribute_1.padding,
         )
         conv2d_block_2 = Conv2DBlock(
-            filters=self.cnn_2d_attribute_2.filter_size, kernel_size=self.cnn_2d_attribute_2.kernel_size, activation=self.cnn_2d_attribute_2.activation, padding=self.cnn_2d_attribute_2.padding
+            filters=self.cnn_2d_attribute_2.filter_size,
+            kernel_size=self.cnn_2d_attribute_2.kernel_size,
+            activation=self.cnn_2d_attribute_2.activation,
+            padding=self.cnn_2d_attribute_2.padding,
         )
 
         cnn_2d = conv2d_block_1(conv2d_input)
@@ -147,9 +157,7 @@ class CZhouLSTMModel(BaseModel):
         bi_lstm_pooled = GlobalMaxPooling1D(lstm)
 
         ### Combine All Features ###
-        combine_feature = Concatenate()(
-            [bi_lstm_pooled, cnn_pooled, cnn_2d_pooled]
-        )
+        combine_feature = Concatenate()([bi_lstm_pooled, cnn_pooled, cnn_2d_pooled])
         combine_feature = LayerNormalization()(combine_feature)
         combine_feature = Dropout(self.dropout_combine)(combine_feature)
 
@@ -157,7 +165,7 @@ class CZhouLSTMModel(BaseModel):
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
             dropout_rate=self.dense_attributes_1.dropout_rate,
-            activation=self.dense_attributes_1.activation
+            activation=self.dense_attributes_1.activation,
         )
 
         dense_block_3 = DenseBlock(
@@ -171,5 +179,3 @@ class CZhouLSTMModel(BaseModel):
         output = dense_block_3(dense)
 
         self.model = Model(inputs=input_layer, outputs=output)
-
-    
