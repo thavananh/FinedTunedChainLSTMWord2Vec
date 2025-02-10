@@ -1,4 +1,4 @@
-CustomerModel_0:
+CustomModel_0:
   learning_rate:
     type: float
     range: [1e-4, 1e-3]
@@ -226,7 +226,7 @@ CustomerModel_0:
     options: ['softmax', 'log_softmax']
     name: dense_3_activation
 
-CustomerModel_1:
+CustomModel_1:
   # General hyperparameters
   learning_rate:
     type: float
@@ -342,7 +342,7 @@ CustomerModel_1:
     type: choice
     values: [softmax, log_softmax]
 
-CustomerModel_2:
+CustomModel_2:
   learning_rate:
     type: float
     range: [1e-4, 1e-3]
@@ -469,7 +469,7 @@ CustomerModel_2:
     options: ['softmax', 'log_softmax']
     name: dense_attributes_3_activation
 
-CustomerModel_3:
+CustomModel_3:
   learning_rate:
     type: float
     range: [1e-4, 1e-3]
@@ -1025,36 +1025,36 @@ Word2Vec:
   sg:
     type: choice
     options: [1]
-    name: w2v_sg
+    name: sg
 
   vector_size:
     type: int
     range: [100, 300]
     step: 100
-    name: w2v_vector_size
+    name: vector_size
 
   window:
     type: int
     range: [3, 10]
     step: 2
-    name: w2v_window
+    name: window
 
   min_count:
     type: int
     range: [2, 20]
     step: 2
-    name: w2v_min_count
+    name: min_count
 
   negative:
     type: int
     range: [5, 15]
     step: 5
-    name: w2v_negative
+    name: negative
 
   sample:
     type: float
     range: [1e-05, 0.001]
     sampling: log
-    name: w2v_sample
+    name: sample
 
   epochs: 30

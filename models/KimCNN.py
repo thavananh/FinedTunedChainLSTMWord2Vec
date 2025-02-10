@@ -51,8 +51,8 @@ class KimCNNModel(BaseModel):
         data_vocab_size,
         embedding_matrix,
         input_length=110,
-        cnn_2d_attribute_1 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
-        cnn_2d_attribute_2 = Cnn2DAttribute(filters=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_1 = Cnn2DAttribute(filter_size=32, kernel_size=(3, 3)),
+        cnn_2d_attribute_2 = Cnn2DAttribute(filter_size=32, kernel_size=(3, 3)),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
     ):

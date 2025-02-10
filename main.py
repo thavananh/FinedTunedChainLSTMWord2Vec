@@ -6,6 +6,8 @@ import csv
 import subprocess
 import sys
 
+from sklearn.metrics import classification_report
+
 from CustomerHyperModel import CustomHyperModel
 from DataLoader import DataLoader
 
@@ -15,8 +17,53 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from Model import CustomModel
+from models.Model_0 import CustomModel_0
 import keras_tuner as kt
+
+from tensorflow.keras.callbacks import Callback
+from sklearn.metrics import classification_report
+import numpy as np
+
+
+class ClassificationReportCallback(Callback):
+    def __init__(
+        self, X_val, y_val, X_test, y_test, label_names
+    ):  # Thêm X_test, y_test
+        super().__init__()
+        self.X_val = X_val
+        self.y_val = y_val
+        self.X_test = X_test
+        self.y_test = y_test
+        self.label_names = label_names
+
+    def on_epoch_end(self, epoch, logs=None):
+        # Validation Report
+        y_pred_val = self.model.predict(self.X_val)
+        y_pred_val_classes = np.argmax(y_pred_val, axis=1)
+        y_true_val = np.argmax(self.y_val, axis=1)
+
+        report_val = classification_report(
+            y_true_val,
+            y_pred_val_classes,
+            target_names=self.label_names,
+            zero_division=0,
+        )
+        print(f"\nEpoch {epoch + 1} - Classification Report (Validation):\n")
+        print(report_val)
+
+        # Test Report
+        y_pred_test = self.model.predict(self.X_test)
+        y_pred_test_classes = np.argmax(y_pred_test, axis=1)
+        y_true_test = np.argmax(self.y_test, axis=1)
+
+        report_test = classification_report(
+            y_true_test,
+            y_pred_test_classes,
+            target_names=self.label_names,
+            zero_division=0,
+        )
+        print(f"\nEpoch {epoch + 1} - Classification Report (Test):\n")
+        print(report_test)
 
 
 def save_to_csv(text_list, label_list, file_name):
@@ -46,8 +93,6 @@ def install_requirements(file_path="requirements.txt"):
         print(f"Lỗi không mong đợi: {e}")
 
 
-
-
 def main():
     # Thiết lập các tham số dòng lệnh
     parser = argparse.ArgumentParser(
@@ -66,9 +111,8 @@ def main():
         "--stopwords_path", type=str, required=True, help="Stopwords data path"
     )
     parser.add_argument(
-        "--use_model", type=str, required=True, help="Use model type"
+        "--model_name", type=str, required=True, help="Model name"
     )
-    parser.add_argument("--use_model", type=str, required=True, help="Model name")
     parser.add_argument(
         "--use_dash", action="store_true", help="Use dash in preprocessor"
     )
@@ -82,7 +126,7 @@ def main():
     print("User's Dev path:", args.dev_path)
     print("User's Test path:", args.test_path)
     print("User's Stopwords path:", args.stopwords_path)
-    print("User's model name: ", args.use_model)
+    print("User's model name: ", args.model_name)
     print("User's Use dash:", args.use_dash)
     print("User's Use simple:", args.use_simple)
 
@@ -191,7 +235,7 @@ def main():
     embedding_matrix = model_sg.get_embedding_matrix(tokenizer)
 
     print("\nBuilding model...")
-    model = CustomModel(
+    model = CustomModel_0(
         len(tokenizer.word_index) + 1, embedding_matrix, input_length=max_len
     )
     model.build_model()
@@ -207,72 +251,30 @@ def main():
     model.generate_classification_report(test_label, preds)
     model.plot_confusion_matrix(test_label, preds, is_print_terminal=True)
 
-    if args.use_model == "A":
-        hypermodel = CustomHyperModel(
-            w2v_corpus=train_text_tokens_from_sent,
-            tokenizer_data=tokenizer,
-            input_length=130,  # Match your input sequence length
-            X_train=train_features,
-            y_train=train_label,
-            X_val=dev_features,
-            y_val=dev_label,
-            X_test=test_features,
-            y_test=test_label,
-        )
-        tuner = kt.Hyperband(
-            hypermodel=hypermodel,
-            objective="val_accuracy",
-            max_epochs=50,
-            factor=3,
-            directory="hyper_tuning",
-            project_name="sentiment_analysis",
-            hyperband_iterations=1,
-            # distribution_strategy=tf.distribute.MirroredStrategy(),
-            overwrite=True,
-        )
-        tuner.search()
-        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-    elif args.use_model  == "B":
-        hypermodel = CustomHyperModel(
-            w2v_corpus=train_text_tokens_from_sent,
-            tokenizer_data=tokenizer,
-            input_length=130,  # Match your input sequence length
-            X_train=train_features,
-            y_train=train_label,
-            X_val=dev_features,
-            y_val=dev_label,
-            X_test=test_features,
-            y_test=test_label,
-        )
-        tuner = kt.Hyperband(
-            hypermodel=hypermodel,
-            objective="val_accuracy",
-            max_epochs=50,
-            factor=3,
-            directory="hyper_tuning",
-            project_name="sentiment_analysis",
-            hyperband_iterations=1,
-            # distribution_strategy=tf.distribute.MirroredStrategy(),
-            overwrite=True,
-        )
-        tuner.search()
-        best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
-    elif choice == "C":
-        return "model_2"
-    elif choice == 'D':
-        return "model_3"
-    elif choice == 'E':
-        return "model_4"
-    elif choice == 'czhou':
-        return "czhou_lstm"
-    elif choice == 'kim':
-        return "kim_cnn"
-    
-    
-
-    
-
-    # Retrieve best Word2Vec params
+    hypermodel = CustomHyperModel(
+        w2v_corpus=train_text_tokens_from_sent,
+        tokenizer_data=tokenizer,
+        input_length=130,  # Match your input sequence length
+        X_train=train_features,
+        y_train=train_label,
+        X_val=dev_features,
+        y_val=dev_label,
+        X_test=test_features,
+        y_test=test_label,
+        model_name=args.model_name,
+    )
+    tuner = kt.Hyperband(
+        hypermodel=hypermodel,
+        objective="val_accuracy",
+        max_epochs=50,
+        factor=3,
+        directory="hyper_tuning",
+        project_name="sentiment_analysis",
+        hyperband_iterations=1,
+        overwrite=True,
+    )
+    tuner.search()
+    best_hps = tuner.get_best_hyperparameters(num_trials=1)[0]
     print(
         f"""
     Best Word2Vec parameters:

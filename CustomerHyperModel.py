@@ -1,5 +1,6 @@
 from datetime import datetime
 import multiprocessing
+import os
 import keras_tuner as kt
 import numpy as np
 from sklearn.metrics import classification_report, confusion_matrix
@@ -15,6 +16,7 @@ from models.Model_3 import CustomModel_3
 from models.PZhouLSTMCNN import PZhouLSTMCNNModel
 from utils.Attribute import *  # Assuming Attribute.py exists
 import yaml
+
 
 
 class CustomHyperModel(kt.HyperModel):
@@ -42,7 +44,7 @@ class CustomHyperModel(kt.HyperModel):
         self.X_test = X_test
         self.y_test = y_test
         self.model_name = model_name
-        self.config = self.load_config("config.yaml")  # Load main config
+        self.config = self.load_config("./config/model.yaml")  # Load main config
         if self.config is None:
             raise ValueError(f"Failed to load config file.")
         self.model_config = self.config.get(
@@ -108,7 +110,6 @@ class CustomHyperModel(kt.HyperModel):
                 w2v_params[param_name] = (
                     param_config  # Use the value directly if not a hyperparameter definition
                 )
-
         # Train Word2Vec
         w2v_model = Word2Vec(**w2v_params, workers=multiprocessing.cpu_count())
         w2v_model.build_vocab(self.w2v_corpus)
@@ -121,7 +122,7 @@ class CustomHyperModel(kt.HyperModel):
         # Generate Embedding Matrix
         data_vocab_size = len(self.tokenizer_data.word_index) + 1
         embedding_matrix = np.random.normal(
-            0, 0.05, (data_vocab_size, w2v_params["w2v_vector_size"])
+            0, 0.05, (data_vocab_size, w2v_params["vector_size"])
         )
 
         for word, i in self.tokenizer_data.word_index.items():
@@ -136,7 +137,6 @@ class CustomHyperModel(kt.HyperModel):
             hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
-
             custom_model = CustomModel_0(
                 data_vocab_size=data_vocab_size,
                 embedding_matrix=embedding_matrix,
@@ -195,7 +195,7 @@ class CustomHyperModel(kt.HyperModel):
                     activation=hp_custom["dense_2_activation"],
                 ),
                 dense_attributes_3=DenseAttribute(
-                    units=hp_custom["dense_3_units"],
+                    units=3,
                     dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
@@ -389,7 +389,7 @@ class CustomHyperModel(kt.HyperModel):
                     activation=hp_custom["cnn_2d_1_activation"],
                     dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
                 ),
-                cnn_2d_attribute_1=Cnn2DAttribute(
+                cnn_2d_attribute_2=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_2_filter_size"],
                     kernel_size=(
                         hp_custom["cnn_2d_2_kernel_size_height"],
@@ -442,11 +442,11 @@ class CustomHyperModel(kt.HyperModel):
                     activation=hp_custom["cnn_2d_1_activation"],
                     dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
                 ),
-                cnn_2d_attribute_1=Cnn2DAttribute(
+                cnn_2d_attribute_2=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_2_filter_size"],
                     kernel_size=(
                         hp_custom["cnn_2d_2_kernel_size_height"],
-                        hp_custom["cnn_2d_1_kernel_size_width"],
+                        hp_custom["cnn_2d_2_kernel_size_width"],
                     ),
                     padding=hp_custom["cnn_2d_2_padding"],
                     activation=hp_custom["cnn_2d_2_activation"],
@@ -492,118 +492,105 @@ class CustomHyperModel(kt.HyperModel):
         else:  # Add this else block
             raise ValueError(f"Unsupported model_name: {self.model_name}")
 
-        custom_model.compile_model(learning_rate=hp_custom["lr"])
         custom_model.build_model()
+        custom_model.compile_model(learning_rate=hp_custom["lr"])
+        
         return custom_model.model
 
-    def fit(self, hp, model, *args, **kwargs):
+    def fit(self, hp, model, *args, **kwargs):  # Keep the fit method, but make it simpler
+        # model.hp = hp # Store hp object inside model, so we can get hyperparameter value in on_train_begin
 
-        model_params = {}
-        for key, value in self.model_config.items():
-            model_params[value.get("name")] = hp.get(value.get("name"))
-
-        w2v_params = {}
-        for key, value in self.w2v_config.items():
-            if isinstance(value, dict) and "name" in value:
-                w2v_params[value.get("name")] = hp.get(value.get("name"))
-            else:
-                w2v_params[key] = value
-
-        # Create filename with current time
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+        # Tạo tên file với thời gian hiện tại
+        current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
         report_filename = f"f1_score_report_{current_time}.txt"
 
-        # Save parameter information to the file
         with open(report_filename, "w") as file:
             file.write("Model Parameters:\n")
-            for key, value in model_params.items():
-                file.write(f"{key}: {value}\n")
+            if self.model_config is not None: # Check if not None
+                for key, value in self.model_config.items():
+                    if isinstance(value, dict) and "name" in value:
+                        file.write(f"{value.get('name')}: {model.hp.get(value.get('name')) if hasattr(model, 'hp') else value}\n")
+                    else:
+                        file.write(f"{key}: {value}\n")
 
             file.write("\nWord2Vec Parameters:\n")
-            for key, value in w2v_params.items():
-                file.write(f"{key}: {value}\n")
-
-        # Set EarlyStopping callback
+            if self.w2v_config is not None: # Check if not None
+                for key, value in self.w2v_config.items():
+                     if isinstance(value, dict) and "name" in value:
+                        file.write(f"{value.get('name')}: {model.hp.get(value.get('name')) if hasattr(model, 'hp') else value}\n")
+                     else:
+                        file.write(f"{key}: {value}\n")
+        
+        # Đặt EarlyStopping callback
         early_stop = EarlyStopping(
-            monitor="val_accuracy", patience=20, restore_best_weights=True
+            monitor='val_accuracy',
+            patience=20,
+            restore_best_weights=True
         )
-
-        # Train the model
+        # Huấn luyện mô hình
         history = model.fit(
-            self.X_train,
-            self.y_train,
+            self.X_train, self.y_train,
             validation_data=(self.X_val, self.y_val),
             epochs=100,
-            batch_size=hp.get("batch_size"),
+            batch_size=hp.get('batch_size'),
             callbacks=[early_stop],
-            verbose=1,
+            verbose=1
         )
 
-        # Predict on the validation set and calculate F1-score
+        # Dự đoán trên tập validation và tính toán F1-score
         y_pred = model.predict(self.X_val, verbose=0)
         y_true_labels = np.argmax(self.y_val, axis=1)
         y_pred_labels = np.argmax(y_pred, axis=1)
 
-        # Create a classification report with F1-score
-        report = classification_report(
-            y_true_labels,
-            y_pred_labels,
-            target_names=["Negative", "Neutral", "Positive"],
-            zero_division=0,
-            digits=4,
-        )
+        # Tạo báo cáo classification với F1-score
+        report = classification_report(y_true_labels, y_pred_labels, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=4)
 
-        # Calculate the confusion matrix
+        # Tính toán confusion matrix
         cm = confusion_matrix(y_true_labels, y_pred_labels)
 
-        # Create a string to write the confusion matrix to the file
+        # Tạo chuỗi để ghi confusion matrix vào file
         cm_str = "Confusion Matrix On Validation Set:\n"
-        cm_str += "    Negative  Neutral  Positive\n"
+        cm_str += "             Negative        Neutral         Positive\n"
         cm_str += f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n"
         cm_str += f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n"
         cm_str += f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n"
 
         print(cm_str)
 
-        # Print the report to the terminal
+        # In báo cáo vào terminal
         print("\nClassification Report on Validation Set:")
         print(report)
 
-        # Save the report to the file
+        # Lưu báo cáo vào file
         with open(report_filename, "a") as file:
             file.write("\nClassification Report:\n")
             file.write(report)
             file.write("\n")
             file.write(cm_str)
 
+
         y_pred_test = model.predict(self.X_test, verbose=0)
         y_true_labels_test = np.argmax(self.y_test, axis=1)
         y_pred_labels_test = np.argmax(y_pred_test, axis=1)
 
-        # Create classification report with F1-score
-        report_1 = classification_report(
-            y_true_labels_test,
-            y_pred_labels_test,
-            target_names=["Negative", "Neutral", "Positive"],
-            zero_division=0,
-            digits=4,
-        )
+        # Tạo báo cáo classification với F1-score
+        report_1 = classification_report(y_true_labels_test, y_pred_labels_test, target_names=['Negative', 'Neutral', 'Positive'], zero_division=0, digits=4)
 
-        # Calculate confusion matrix
+        # Tính toán confusion matrix
         cm_1 = confusion_matrix(y_true_labels_test, y_pred_labels_test)
 
-        # Create a string to write the confusion matrix to the file
+        # Tạo chuỗi để ghi confusion matrix vào file
         cm_str_1 = "Confusion Matrix On Test Set:\n"
-        cm_str_1 += "    Negative  Neutral  Positive\n"
+        cm_str_1 += "               Negative         Neutral           Positive\n"
         cm_str_1 += f"Negative   {cm_1[0][0]}      {cm_1[0][1]}      {cm_1[0][2]}\n"
-        cm_str_1 += f"Neutral    {cm_1[0][0]}      {cm_1[1][1]}      {cm_1[1][2]}\n"
-        cm_str_1 += f"Positive   {cm_1[0][0]}      {cm_1[2][1]}      {cm_1[2][2]}\n"
+        cm_str_1 += f"Neutral    {cm_1[1][0]}      {cm_1[1][1]}      {cm_1[1][2]}\n"
+        cm_str_1 += f"Positive   {cm_1[2][0]}      {cm_1[2][1]}      {cm_1[2][2]}\n"
 
-        # Print report to terminal
+        # In báo cáo vào terminal
         print("\nClassification Report on Test Set:")
         print(report_1)
 
-        # Save report to the file
+        # Lưu báo cáo vào file
         with open(report_filename, "a") as file:
             file.write("\nClassification Report On Validatation Set:\n")
             file.write(report)

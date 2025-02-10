@@ -21,6 +21,8 @@ class BaseModel:
         raise NotImplementedError("Subclasses must implement build_model method")
 
     def compile_model(self, learning_rate=1e-4, weight_decay=0.0):
+        if self.model is None:
+            self.build_model()  # Call build_model if it hasn't been called yet
         lr_schedule = WarmUp(initial_lr=learning_rate, warmup_steps=500, decay_steps=10000)
         optimizer = AdamW(learning_rate=lr_schedule, weight_decay=weight_decay)
         self.model.compile(
@@ -37,7 +39,7 @@ class BaseModel:
             validation_data=(X_val, y_val),
             epochs=epochs,
             batch_size=batch_size,
-            callbacks=[early_stop, self.tensorboard_callback],
+            callbacks=[early_stop],
             verbose=1,
         )
 
