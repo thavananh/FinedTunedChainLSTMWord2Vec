@@ -42,6 +42,7 @@ class CustomModel_1(BaseModel):
         cnn_attributes_1=CnnAtribute(100, 1),
         cnn_attributes_2=CnnAtribute(100, 2),
         lstm_attributes_1=LSTMAttribute(300),
+        lstm_attributes_2=LSTMAttribute(300),
         multi_head_attention_attributes=MultiHeadAttentionAttribute(4, 32),
         dense_attributes_1=DenseAttribute(256),
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
@@ -61,6 +62,7 @@ class CustomModel_1(BaseModel):
         self.cnn_attributes_1 = cnn_attributes_1
         self.cnn_attributes_2 = cnn_attributes_2
         self.lstm_attributes_1 = lstm_attributes_1
+        self.lstm_attributes_2 = lstm_attributes_2
         self.multi_head_attention_attributes = multi_head_attention_attributes
         self.dropout_combine = dropout_combine
         self.dense_attributes_1 = dense_attributes_1
@@ -77,7 +79,7 @@ class CustomModel_1(BaseModel):
             weights=[self.embedding_matrix],
             trainable=False,
         )(input_layer)
-        x = Dropout(0.5)(x)
+        x = Dropout(self.dropout_features)(x)
 
         # Convolutional block
         cnn_block_1 = Conv1DBlock(
@@ -116,13 +118,13 @@ class CustomModel_1(BaseModel):
 
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
-            dropout_rate=self.dense_attributes_1.dropout_rate,
+            # dropout_rate=self.dense_attributes_1.dropout_rate,
             activation=self.dense_attributes_1.activation
         )
 
         dense_block_3 = DenseBlock(
-            units=self.dense_attributes_3.units,
-            dropout_rate=self.dense_attributes_3.dropout_rate,
+            units=3,
+            # dropout_rate=self.dense_attributes_3.dropout_rate,
             activation=self.dense_attributes_3.activation,
         )
 

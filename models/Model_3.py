@@ -98,7 +98,7 @@ class CustomModel_3(BaseModel):
         cnn = cnn_block_2(cnn)
 
         # Recurrent Path
-        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_2.dropout_rate)
+        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_1.dropout_rate)
 
         lstm = lstm_block_1(cnn)
         
@@ -128,7 +128,7 @@ class CustomModel_3(BaseModel):
         )
         
         dense_block_3 = DenseBlock(
-            units=self.dense_attributes_3.units,
+            units=3,
             dropout_rate=self.dense_attributes_3.dropout_rate,
             activation=self.dense_attributes_3.activation,
         )

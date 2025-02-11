@@ -8,7 +8,7 @@ import sys
 
 from sklearn.metrics import classification_report
 
-from CustomerHyperModel import CustomHyperModel
+from CustomHyperModel import CustomHyperModel
 from DataLoader import DataLoader
 
 from Preprocessing import VietnameseTextPreprocessor
@@ -114,6 +114,15 @@ def main():
         "--model_name", type=str, required=True, help="Model name"
     )
     parser.add_argument(
+        "--epoch_tune", type=int, required=True, help="Tune's Epoch"
+    )
+    parser.add_argument(
+        "--telegram_bot_id", type=str, required=True, help="Telegram bot id"
+    )
+    parser.add_argument(
+        "--telegram_group_id", type=str, required=True, help="Telegram group id"
+    )
+    parser.add_argument(
         "--use_dash", action="store_true", help="Use dash in preprocessor"
     )
     parser.add_argument(
@@ -127,6 +136,9 @@ def main():
     print("User's Test path:", args.test_path)
     print("User's Stopwords path:", args.stopwords_path)
     print("User's model name: ", args.model_name)
+    print("User's epoch tune: ", args.epoch_tune)
+    print("User's Telegram bot id: ", args.telegram_bot_id)
+    print("User's Telegram group id: ", args.telegram_group_id)
     print("User's Use dash:", args.use_dash)
     print("User's Use simple:", args.use_simple)
 
@@ -234,22 +246,22 @@ def main():
     model_sg.load_model("model_sg.word2vec")
     embedding_matrix = model_sg.get_embedding_matrix(tokenizer)
 
-    print("\nBuilding model...")
-    model = CustomModel_0(
-        len(tokenizer.word_index) + 1, embedding_matrix, input_length=max_len
-    )
-    model.build_model()
-    model.compile_model()
-    print(train_label.shape)
-    print(dev_label.shape)
-    model.train(train_features, train_label, dev_features, dev_label, epochs=2)
+    # print("\nBuilding model...")
+    # model = CustomModel_0(
+    #     len(tokenizer.word_index) + 1, embedding_matrix, input_length=max_len
+    # )
+    # model.build_model()
+    # model.compile_model()
+    # print(train_label.shape)
+    # print(dev_label.shape)
+    # model.train(train_features, train_label, dev_features, dev_label, epochs=2)
 
-    # Đánh giá mô hình
-    model.evaluate_model(test_features, test_label)
-    preds = model.predict(test_features)
-    preds = tf.round(preds).numpy()
-    model.generate_classification_report(test_label, preds)
-    model.plot_confusion_matrix(test_label, preds, is_print_terminal=True)
+    # # Đánh giá mô hình
+    # model.evaluate_model(test_features, test_label)
+    # preds = model.predict(test_features)
+    # preds = tf.round(preds).numpy()
+    # model.generate_classification_report(test_label, preds)
+    # model.plot_confusion_matrix(test_label, preds, is_print_terminal=True)
 
     hypermodel = CustomHyperModel(
         w2v_corpus=train_text_tokens_from_sent,
@@ -262,6 +274,9 @@ def main():
         X_test=test_features,
         y_test=test_label,
         model_name=args.model_name,
+        epoch_num=args.epoch_tune,
+        telegram_bot_id=args.telegram_bot_id,
+        group_chat_id=args.telegram_group_id,
     )
     tuner = kt.Hyperband(
         hypermodel=hypermodel,

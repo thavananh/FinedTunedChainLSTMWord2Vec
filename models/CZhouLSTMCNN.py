@@ -152,9 +152,9 @@ class CZhouLSTMCNNModel(BaseModel):
         cnn_2d = conv2d_block_1(conv2d_input)
         cnn_2d = conv2d_block_2(cnn_2d)
 
-        cnn_2d_pooled = GlobalMaxPooling2D(cnn_2d)
-        cnn_pooled = GlobalMaxPooling1D(cnn)
-        bi_lstm_pooled = GlobalMaxPooling1D(lstm)
+        cnn_2d_pooled = GlobalMaxPooling2D()(cnn_2d)
+        cnn_pooled = GlobalMaxPooling1D()(cnn)
+        bi_lstm_pooled = GlobalMaxPooling1D()(lstm)
 
         ### Combine All Features ###
         combine_feature = Concatenate()([bi_lstm_pooled, cnn_pooled, cnn_2d_pooled])

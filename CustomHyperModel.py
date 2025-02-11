@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 import multiprocessing
 import os
@@ -16,8 +17,18 @@ from models.Model_3 import CustomModel_3
 from models.PZhouLSTMCNN import PZhouLSTMCNNModel
 from utils.Attribute import *  # Assuming Attribute.py exists
 import yaml
+import telegram 
 
 
+async def send_report_via_telegram(report_filename, telegram_bot_id, group_chat_id):
+    # Khởi tạo bot với token của bạn
+    bot = telegram.Bot(token=telegram_bot_id)
+    telegram_chat_id = group_chat_id
+    
+    # Mở file ở chế độ đọc nhị phân và gửi file
+    with open(report_filename, 'rb') as doc:
+        await bot.send_document(chat_id=telegram_chat_id, document=doc)
+    print("Báo cáo đã được gửi qua Telegram.")
 
 class CustomHyperModel(kt.HyperModel):
     def __init__(
@@ -32,6 +43,9 @@ class CustomHyperModel(kt.HyperModel):
         X_test,
         y_test,
         model_name,
+        epoch_num,
+        telegram_bot_id,
+        group_chat_id
     ):
         super().__init__()
         self.w2v_corpus = w2v_corpus
@@ -55,6 +69,9 @@ class CustomHyperModel(kt.HyperModel):
         self.w2v_config = self.config.get("Word2Vec", {})  # Load model-specific config
         if self.w2v_config is None:
             raise ValueError(f"Failed to load config for model: Word2Vec")
+        self.epoch_num = epoch_num
+        self.telegram_bot_id = telegram_bot_id
+        self.group_chat_id = group_chat_id
 
     def load_config(self, config_path):
         try:
@@ -148,28 +165,28 @@ class CustomHyperModel(kt.HyperModel):
                     kernel_size=hp_custom["cnn_1_kernel_size"],
                     padding=hp_custom["cnn_1_padding"],
                     activation=hp_custom["cnn_1_activation"],
-                    dropout_rate=hp_custom["cnn_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_1_dropout_rate"],
                 ),
                 cnn_attributes_2=CnnAtribute(
                     filter_size=hp_custom["cnn_2_filter_size"],
                     kernel_size=hp_custom["cnn_2_kernel_size"],
                     padding=hp_custom["cnn_2_padding"],
                     activation=hp_custom["cnn_2_activation"],
-                    dropout_rate=hp_custom["cnn_2_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2_dropout_rate"],
                 ),
                 cnn_attributes_3=CnnAtribute(
                     filter_size=hp_custom["cnn_3_filter_size"],
                     kernel_size=hp_custom["cnn_3_kernel_size"],
                     padding=hp_custom["cnn_3_padding"],
                     activation=hp_custom["cnn_3_activation"],
-                    dropout_rate=hp_custom["cnn_3_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_3_dropout_rate"],
                 ),
                 cnn_attributes_4=CnnAtribute(
                     filter_size=hp_custom["cnn_4_filter_size"],
                     kernel_size=hp_custom["cnn_4_kernel_size"],
                     padding=hp_custom["cnn_4_padding"],
                     activation=hp_custom["cnn_4_activation"],
-                    dropout_rate=hp_custom["cnn_4_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_4_dropout_rate"],
                 ),
                 lstm_attributes_1=LSTMAttribute(
                     units=hp_custom["lstm_1_units"],
@@ -186,47 +203,52 @@ class CustomHyperModel(kt.HyperModel):
                 ),
                 dense_attributes_1=DenseAttribute(
                     units=hp_custom["dense_1_units"],
-                    dropout_rate=hp_custom["dense_1_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_1_dropout_rate"],
                     activation=hp_custom["dense_1_activation"],
                 ),
                 dense_attributes_2=DenseAttribute(
                     units=hp_custom["dense_2_units"],
-                    dropout_rate=hp_custom["dense_2_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_2_dropout_rate"],
                     activation=hp_custom["dense_2_activation"],
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
-        elif self.model_name == "CustomerModel_1":
+        elif self.model_name == "CustomModel_1":
             hp_custom = {}
+            print(hp_custom)
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = CustomModel_1(
                 data_vocab_size=data_vocab_size,
                 embedding_matrix=embedding_matrix,
                 input_length=self.input_length,
-                dropout_combine=hp_custom["dropout_combine"],
                 dropout_features=hp_custom["dropout_features"],
+                dropout_combine=hp_custom["dropout_combine"],
                 cnn_attributes_1=CnnAtribute(
                     filter_size=hp_custom["cnn_1_filter_size"],
                     kernel_size=hp_custom["cnn_1_kernel_size"],
                     padding=hp_custom["cnn_1_padding"],
                     activation=hp_custom["cnn_1_activation"],
-                    dropout_rate=hp_custom["cnn_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_1_dropout_rate"],
                 ),
                 cnn_attributes_2=CnnAtribute(
                     filter_size=hp_custom["cnn_2_filter_size"],
                     kernel_size=hp_custom["cnn_2_kernel_size"],
                     padding=hp_custom["cnn_2_padding"],
                     activation=hp_custom["cnn_2_activation"],
-                    dropout_rate=hp_custom["cnn_2_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2_dropout_rate"],
                 ),
                 lstm_attributes_1=LSTMAttribute(
                     units=hp_custom["lstm_1_units"],
                     dropout_rate=hp_custom["lstm_1_dropout_rate"],
+                ),
+                lstm_attributes_2=LSTMAttribute(
+                    units=hp_custom["lstm_2_units"],
+                    dropout_rate=hp_custom["lstm_2_dropout_rate"],
                 ),
                 multi_head_attention_attributes=MultiHeadAttentionAttribute(
                     num_heads=hp_custom["multi_head_attention_num_heads"],
@@ -235,16 +257,16 @@ class CustomHyperModel(kt.HyperModel):
                 ),
                 dense_attributes_1=DenseAttribute(
                     units=hp_custom["dense_1_units"],
-                    dropout_rate=hp_custom["dense_1_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_1_dropout_rate"],
                     activation=hp_custom["dense_1_activation"],
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
-        elif self.model_name == "CustomerModel_2":
+        elif self.model_name == "CustomModel_2":
             hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
@@ -273,21 +295,21 @@ class CustomHyperModel(kt.HyperModel):
                 ),
                 dense_attributes_1=DenseAttribute(
                     units=hp_custom["dense_1_units"],
-                    dropout_rate=hp_custom["dense_1_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_1_dropout_rate"],
                     activation=hp_custom["dense_1_activation"],
                 ),
                 dense_attributes_2=DenseAttribute(
                     units=hp_custom["dense_2_units"],
-                    dropout_rate=hp_custom["dense_2_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_2_dropout_rate"],
                     activation=hp_custom["dense_2_activation"],
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
-        elif self.model_name == "CustomerModel_3":
+        elif self.model_name == "CustomModel_3":
             hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
@@ -304,26 +326,18 @@ class CustomHyperModel(kt.HyperModel):
                     kernel_size=hp_custom["cnn_1_kernel_size"],
                     padding=hp_custom["cnn_1_padding"],
                     activation=hp_custom["cnn_1_activation"],
-                    dropout_rate=hp_custom["cnn_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_1_dropout_rate"],
                 ),
                 cnn_attributes_2=CnnAtribute(
                     filter_size=hp_custom["cnn_2_filter_size"],
                     kernel_size=hp_custom["cnn_2_kernel_size"],
                     padding=hp_custom["cnn_2_padding"],
                     activation=hp_custom["cnn_2_activation"],
-                    dropout_rate=hp_custom["cnn_2_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2_dropout_rate"],
                 ),
                 lstm_attributes_1=LSTMAttribute(
                     units=hp_custom["lstm_1_units"],
                     dropout_rate=hp_custom["lstm_1_dropout_rate"],
-                ),
-                lstm_attributes_2=LSTMAttribute(
-                    units=hp_custom["lstm_2_units"],
-                    dropout_rate=hp_custom["lstm_2_dropout_rate"],
-                ),
-                lstm_attributes_3=LSTMAttribute(
-                    units=hp_custom["lstm_3_units"],
-                    dropout_rate=hp_custom["lstm_3_dropout_rate"],
                 ),
                 multi_head_attention_attributes=MultiHeadAttentionAttribute(
                     num_heads=hp_custom["multi_head_attention_num_heads"],
@@ -332,12 +346,12 @@ class CustomHyperModel(kt.HyperModel):
                 ),
                 dense_attributes_1=DenseAttribute(
                     units=hp_custom["dense_1_units"],
-                    dropout_rate=hp_custom["dense_1_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_1_dropout_rate"],
                     activation=hp_custom["dense_1_activation"],
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
@@ -356,28 +370,28 @@ class CustomHyperModel(kt.HyperModel):
                     kernel_size=hp_custom["cnn_1_kernel_size"],
                     padding=hp_custom["cnn_1_padding"],
                     activation=hp_custom["cnn_1_activation"],
-                    dropout_rate=hp_custom["cnn_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_1_dropout_rate"],
                 ),
                 cnn_attributes_2=CnnAtribute(
                     filter_size=hp_custom["cnn_2_filter_size"],
                     kernel_size=hp_custom["cnn_2_kernel_size"],
                     padding=hp_custom["cnn_2_padding"],
                     activation=hp_custom["cnn_2_activation"],
-                    dropout_rate=hp_custom["cnn_2_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2_dropout_rate"],
                 ),
                 cnn_attributes_3=CnnAtribute(
                     filter_size=hp_custom["cnn_3_filter_size"],
                     kernel_size=hp_custom["cnn_3_kernel_size"],
                     padding=hp_custom["cnn_3_padding"],
                     activation=hp_custom["cnn_3_activation"],
-                    dropout_rate=hp_custom["cnn_3_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_3_dropout_rate"],
                 ),
                 cnn_attributes_4=CnnAtribute(
                     filter_size=hp_custom["cnn_4_filter_size"],
                     kernel_size=hp_custom["cnn_4_kernel_size"],
                     padding=hp_custom["cnn_4_padding"],
                     activation=hp_custom["cnn_4_activation"],
-                    dropout_rate=hp_custom["cnn_4_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_4_dropout_rate"],
                 ),
                 cnn_2d_attribute_1=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_1_filter_size"],
@@ -387,7 +401,7 @@ class CustomHyperModel(kt.HyperModel):
                     ),
                     padding=hp_custom["cnn_2d_1_padding"],
                     activation=hp_custom["cnn_2d_1_activation"],
-                    dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
                 ),
                 cnn_2d_attribute_2=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_2_filter_size"],
@@ -397,7 +411,7 @@ class CustomHyperModel(kt.HyperModel):
                     ),
                     padding=hp_custom["cnn_2d_2_padding"],
                     activation=hp_custom["cnn_2d_2_activation"],
-                    dropout_rate=hp_custom["cnn_2d_2_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2d_2_dropout_rate"],
                 ),
                 lstm_attributes_1=LSTMAttribute(
                     units=hp_custom["lstm_1_units"],
@@ -407,18 +421,14 @@ class CustomHyperModel(kt.HyperModel):
                     units=hp_custom["lstm_2_units"],
                     dropout_rate=hp_custom["lstm_2_dropout_rate"],
                 ),
-                lstm_attributes_3=LSTMAttribute(
-                    units=hp_custom["lstm_3_units"],
-                    dropout_rate=hp_custom["lstm_3_dropout_rate"],
-                ),
                 dense_attributes_1=DenseAttribute(
                     units=hp_custom["dense_1_units"],
-                    dropout_rate=hp_custom["dense_1_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_1_dropout_rate"],
                     activation=hp_custom["dense_1_activation"],
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
@@ -430,7 +440,7 @@ class CustomHyperModel(kt.HyperModel):
                 data_vocab_size=data_vocab_size,
                 embedding_matrix=embedding_matrix,
                 input_length=self.input_length,
-                dropout_combine=hp_custom["dropout_combine"],
+                # dropout_combine=hp_custom["dropout_combine"],
                 dropout_features=hp_custom["dropout_features"],
                 cnn_2d_attribute_1=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_1_filter_size"],
@@ -440,7 +450,7 @@ class CustomHyperModel(kt.HyperModel):
                     ),
                     padding=hp_custom["cnn_2d_1_padding"],
                     activation=hp_custom["cnn_2d_1_activation"],
-                    dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
                 ),
                 cnn_2d_attribute_2=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_2_filter_size"],
@@ -450,11 +460,11 @@ class CustomHyperModel(kt.HyperModel):
                     ),
                     padding=hp_custom["cnn_2d_2_padding"],
                     activation=hp_custom["cnn_2d_2_activation"],
-                    dropout_rate=hp_custom["cnn_2d_2_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2d_2_dropout_rate"],
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
@@ -476,7 +486,7 @@ class CustomHyperModel(kt.HyperModel):
                     ),
                     padding=hp_custom["cnn_2d_1_padding"],
                     activation=hp_custom["cnn_2d_1_activation"],
-                    dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
+                    # dropout_rate=hp_custom["cnn_2d_1_dropout_rate"],
                 ),
                 lstm_attributes_1=LSTMAttribute(
                     units=hp_custom["lstm_1_units"],
@@ -484,7 +494,7 @@ class CustomHyperModel(kt.HyperModel):
                 ),
                 dense_attributes_3=DenseAttribute(
                     units=3,
-                    dropout_rate=hp_custom["dense_3_dropout_rate"],
+                    # dropout_rate=hp_custom["dense_3_dropout_rate"],
                     activation=hp_custom["dense_3_activation"],
                 ),
             )
@@ -496,15 +506,20 @@ class CustomHyperModel(kt.HyperModel):
         custom_model.compile_model(learning_rate=hp_custom["lr"])
         
         return custom_model.model
+    
+    # Định nghĩa hàm bất đồng bộ gửi file báo cáo qua Telegram
+   
 
     def fit(self, hp, model, *args, **kwargs):  # Keep the fit method, but make it simpler
         # model.hp = hp # Store hp object inside model, so we can get hyperparameter value in on_train_begin
 
         # Tạo tên file với thời gian hiện tại
         current_time = datetime.now().strftime('%Y%m%d_%H%M%S')
-        report_filename = f"f1_score_report_{current_time}.txt"
+        report_filename = f"f1_score_report_{current_time}_{self.model_name}.txt"
 
+        
         with open(report_filename, "w") as file:
+            file.write(f"Model Name: {self.model_name}\n")
             file.write("Model Parameters:\n")
             if self.model_config is not None: # Check if not None
                 for key, value in self.model_config.items():
@@ -531,11 +546,13 @@ class CustomHyperModel(kt.HyperModel):
         history = model.fit(
             self.X_train, self.y_train,
             validation_data=(self.X_val, self.y_val),
-            epochs=100,
+            epochs=self.epoch_num,
             batch_size=hp.get('batch_size'),
             callbacks=[early_stop],
             verbose=1
         )
+
+        col_width = 10
 
         # Dự đoán trên tập validation và tính toán F1-score
         y_pred = model.predict(self.X_val, verbose=0)
@@ -549,24 +566,11 @@ class CustomHyperModel(kt.HyperModel):
         cm = confusion_matrix(y_true_labels, y_pred_labels)
 
         # Tạo chuỗi để ghi confusion matrix vào file
-        cm_str = "Confusion Matrix On Validation Set:\n"
-        cm_str += "             Negative        Neutral         Positive\n"
-        cm_str += f"Negative   {cm[0][0]}      {cm[0][1]}      {cm[0][2]}\n"
-        cm_str += f"Neutral    {cm[1][0]}      {cm[1][1]}      {cm[1][2]}\n"
-        cm_str += f"Positive   {cm[2][0]}      {cm[2][1]}      {cm[2][2]}\n"
-
-        print(cm_str)
-
-        # In báo cáo vào terminal
-        print("\nClassification Report on Validation Set:")
-        print(report)
-
-        # Lưu báo cáo vào file
-        with open(report_filename, "a") as file:
-            file.write("\nClassification Report:\n")
-            file.write(report)
-            file.write("\n")
-            file.write(cm_str)
+        cm_str = "\nConfusion Matrix On Validation Set:\n"
+        cm_str += f"{'':<{col_width}}{'Negative':>{col_width}}{'Neutral':>{col_width}}{'Positive':>{col_width}}\n"
+        cm_str += f"{'Negative':<{col_width}}{cm[0][0]:>{col_width}}{cm[0][1]:>{col_width}}{cm[0][2]:>{col_width}}\n"
+        cm_str += f"{'Neutral':<{col_width}}{cm[1][0]:>{col_width}}{cm[1][1]:>{col_width}}{cm[1][2]:>{col_width}}\n"
+        cm_str += f"{'Positive':<{col_width}}{cm[2][0]:>{col_width}}{cm[2][1]:>{col_width}}{cm[2][2]:>{col_width}}\n"
 
 
         y_pred_test = model.predict(self.X_test, verbose=0)
@@ -580,11 +584,16 @@ class CustomHyperModel(kt.HyperModel):
         cm_1 = confusion_matrix(y_true_labels_test, y_pred_labels_test)
 
         # Tạo chuỗi để ghi confusion matrix vào file
-        cm_str_1 = "Confusion Matrix On Test Set:\n"
-        cm_str_1 += "               Negative         Neutral           Positive\n"
-        cm_str_1 += f"Negative   {cm_1[0][0]}      {cm_1[0][1]}      {cm_1[0][2]}\n"
-        cm_str_1 += f"Neutral    {cm_1[1][0]}      {cm_1[1][1]}      {cm_1[1][2]}\n"
-        cm_str_1 += f"Positive   {cm_1[2][0]}      {cm_1[2][1]}      {cm_1[2][2]}\n"
+        # Độ rộng cột
+        
+
+        # Tạo chuỗi để ghi confusion matrix vào file
+        cm_str_1 = "\nConfusion Matrix On Test Set:\n"
+        cm_str_1 += f"{'':<{col_width}}{'Negative':>{col_width}}{'Neutral':>{col_width}}{'Positive':>{col_width}}\n"
+        cm_str_1 += f"{'Negative':<{col_width}}{cm_1[0][0]:>{col_width}}{cm_1[0][1]:>{col_width}}{cm_1[0][2]:>{col_width}}\n"
+        cm_str_1 += f"{'Neutral':<{col_width}}{cm_1[1][0]:>{col_width}}{cm_1[1][1]:>{col_width}}{cm_1[1][2]:>{col_width}}\n"
+        cm_str_1 += f"{'Positive':<{col_width}}{cm_1[2][0]:>{col_width}}{cm_1[2][1]:>{col_width}}{cm_1[2][2]:>{col_width}}\n"
+
 
         # In báo cáo vào terminal
         print("\nClassification Report on Test Set:")
@@ -596,9 +605,13 @@ class CustomHyperModel(kt.HyperModel):
             file.write(report)
             file.write("\nClassification Report On Test Set:\n")
             file.write(report_1)
-            file.write("\nConfusion Matrix On Validatation Set:\n")
             file.write(cm_str)
-            file.write("\nConfusion Matrix On Validatation Set:\n")
             file.write(cm_str_1)
+
+        try:
+            # Sử dụng asyncio.run() để chạy coroutine gửi file
+            asyncio.run(send_report_via_telegram(report_filename, self.telegram_bot_id, self.group_chat_id))
+        except Exception as e:
+            print("Gửi báo cáo qua Telegram thất bại:", e)
 
         return history

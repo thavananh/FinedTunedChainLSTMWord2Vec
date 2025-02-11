@@ -1,3 +1,4 @@
+from math import e
 from tensorflow.keras.layers import (
     Input,
     Embedding,
@@ -12,6 +13,7 @@ from tensorflow.keras.layers import (
     Dense,
     MultiHeadAttention,
     BatchNormalization,
+
 )
 
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, BatchNormalization, GlobalMaxPooling2D, Dropout
@@ -32,16 +34,29 @@ class Conv1DBlock(tf.keras.layers.Layer):
         super(Conv1DBlock, self).__init__(**kwargs)
 
         # Define sub-layers
-        self.conv = Conv1D(filters, kernel_size, padding=padding, activation=activation)
+        self.conv = Conv1D(filters, kernel_size, padding=padding)
         self.pool = MaxPool1D()
         self.bn = BatchNormalization()
-        self.dropout = Dropout(dropout_rate)
+        self.activation = activation
+        # self.dropout = Dropout(dropout_rate)
 
     def call(self, inputs, training=None):
         x = self.conv(inputs)
-        x = self.pool(x)
         x = self.bn(x, training=training)
-        x = self.dropout(x, training=training)
+        if (self.activation == "silu"):
+            x = tf.nn.silu(x)
+        elif (self.activation == "gelu"):
+            x = tf.nn.gelu(x)
+        elif (self.activation == "elu"):
+            x = tf.nn.elu(x)
+        elif (self.activation == "selu"):
+            x = tf.nn.selu(x)
+        elif (self.activation == 'leaky_relu'):
+            x = tf.nn.leaky_relu(x)
+        else:
+            x = tf.nn.relu(x)
+        x = self.pool(x)
+        # x = self.dropout(x, training=training)
         return x
 
 
@@ -77,27 +92,27 @@ class DenseBlock(tf.keras.layers.Layer):
 
         # Define sub-layers
         self.dense = Dense(units, activation=activation)
-        self.dropout = Dropout(dropout_rate)
+        # self.dropout = Dropout(dropout_rate)
 
     def call(self, inputs, training=None):
         x = self.dense(inputs)
-        x = self.dropout(x, training=training)
+        # x = self.dropout(x, training=training)
         return x
     
 
 class Conv2DBlock(tf.keras.layers.Layer):
-    def __init__(self, dropout_threshold=0.5):
+    def __init__(self, filters=64, kernel_size=(3,3), activation='relu', padding='same', dropout_threshold=0.5):
         super(Conv2DBlock, self).__init__()
-        self.conv2d_1 = Conv2D(filters=64, kernel_size=(3,3), activation='relu', padding='same')
+        self.conv2d_1 = Conv2D(filters=filters, kernel_size=kernel_size, activation=activation, padding=padding)
         self.max_pool = MaxPooling2D(pool_size=(2,2))
         self.batch_norm = BatchNormalization()
-        self.dropout = Dropout(dropout_threshold)
+        # self.dropout = Dropout(dropout_threshold)
         
     def call(self, inputs):
         x = self.conv2d_1(inputs)
         x = self.max_pool(x)
         x = self.batch_norm(x)
-        x = self.dropout(x)
+        # x = self.dropout(x)
         return x
 
 
