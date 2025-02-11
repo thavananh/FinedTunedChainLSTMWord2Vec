@@ -8,7 +8,6 @@ from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.callbacks import EarlyStopping
 from gensim.models import Word2Vec
 import tensorflow as tf
-from torch import softmax
 from models.KimCNN import KimCNNModel
 from models.CZhouLSTMCNN import CZhouLSTMCNNModel
 from models.Model_0 import CustomModel_0  # Assuming Model_0.py exists
