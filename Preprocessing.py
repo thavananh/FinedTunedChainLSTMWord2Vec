@@ -963,8 +963,8 @@ class VietnameseTextPreprocessor:
 
     def preprocess_text_vietnamese_to_tokens(self, text, isReturnTokens=True, isUsingDash=True, isSimple=False):
         text = unicodedata.normalize('NFKC', str(text)).lower()
-        text = text_normalize(text)
-        text = text.translate(str.maketrans('', '', string.punctuation))
+        text = text_normalize(text) 
+        text = text.translate(str.maketrans('', '', string.punctuation)) # xoa dau cau
         
         # Thay thế từ ngữ theo mapping_dict
         for original, replacement in self.mapping_dict.items():
@@ -1030,9 +1030,6 @@ class VietnameseTextPreprocessor:
         if isReturnTokens:
             return tokens
         return ' '.join(tokens)
-
-    
-        
 
 
     def preprocess_texts_concurrently(

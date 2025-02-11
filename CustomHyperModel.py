@@ -440,7 +440,7 @@ class CustomHyperModel(kt.HyperModel):
                 data_vocab_size=data_vocab_size,
                 embedding_matrix=embedding_matrix,
                 input_length=self.input_length,
-                # dropout_combine=hp_custom["dropout_combine"],
+                
                 dropout_features=hp_custom["dropout_features"],
                 cnn_2d_attribute_1=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_1_filter_size"],
@@ -522,19 +522,15 @@ class CustomHyperModel(kt.HyperModel):
             file.write(f"Model Name: {self.model_name}\n")
             file.write("Model Parameters:\n")
             if self.model_config is not None: # Check if not None
+                file.write('Model Parameters:\n')
                 for key, value in self.model_config.items():
-                    if isinstance(value, dict) and "name" in value:
-                        file.write(f"{value.get('name')}: {model.hp.get(value.get('name')) if hasattr(model, 'hp') else value}\n")
-                    else:
-                        file.write(f"{key}: {value}\n")
+                    file.write(f"{key}: {value}\n")
 
             file.write("\nWord2Vec Parameters:\n")
             if self.w2v_config is not None: # Check if not None
+                file.write('Word2Vec Parameters:\n')
                 for key, value in self.w2v_config.items():
-                     if isinstance(value, dict) and "name" in value:
-                        file.write(f"{value.get('name')}: {model.hp.get(value.get('name')) if hasattr(model, 'hp') else value}\n")
-                     else:
-                        file.write(f"{key}: {value}\n")
+                    file.write(f"{key}: {value}\n")
         
         # Đặt EarlyStopping callback
         early_stop = EarlyStopping(
