@@ -1068,7 +1068,7 @@ PZhouLSTMCNN:
 Word2Vec:
   sg:
     type: choice
-    options: [1]
+    options: [1, 0]
     name: sg
 
   vector_size:
