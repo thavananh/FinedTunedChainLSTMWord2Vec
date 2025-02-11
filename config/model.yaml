@@ -1085,7 +1085,7 @@ Word2Vec:
 
   min_count:
     type: int
-    range: [2, 20]
+    range: [2, 10]
     step: 2
     name: min_count
 
@@ -1101,4 +1101,4 @@ Word2Vec:
     sampling: log
     name: sample
 
-  epochs: 30
+  epochs: 20

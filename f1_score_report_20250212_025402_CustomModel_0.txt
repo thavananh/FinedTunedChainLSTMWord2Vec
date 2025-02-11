@@ -1,0 +1,43 @@
+Model Name: CustomModel_0
+Model Parameters:
+Model Parameters:
+lr
+batch_size
+dropout_features
+dropout_combine
+cnn_1_filter_size
+cnn_1_kernel_size
+cnn_1_padding
+cnn_1_activation
+cnn_2_filter_size
+cnn_2_kernel_size
+cnn_2_padding
+cnn_2_activation
+cnn_3_filter_size
+cnn_3_kernel_size
+cnn_3_padding
+cnn_3_activation
+cnn_4_filter_size
+cnn_4_kernel_size
+cnn_4_padding
+cnn_4_activation
+lstm_1_units
+lstm_1_dropout_rate
+lstm_2_units
+lstm_2_dropout_rate
+multi_head_attention_num_heads
+multi_head_attention_key_dim
+multi_head_attention_dropout_rate
+dense_1_units
+dense_1_activation
+dense_2_units
+dense_2_activation
+dense_3_activation
+Word2Vec Parameters:
+sg
+vector_size
+window
+min_count
+negative
+sample
+epochs

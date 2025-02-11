@@ -8,6 +8,7 @@ from sklearn.metrics import classification_report, confusion_matrix
 from tensorflow.keras.callbacks import EarlyStopping
 from gensim.models import Word2Vec
 import tensorflow as tf
+from torch import softmax
 from models.KimCNN import KimCNNModel
 from models.CZhouLSTMCNN import CZhouLSTMCNNModel
 from models.Model_0 import CustomModel_0  # Assuming Model_0.py exists
@@ -72,6 +73,9 @@ class CustomHyperModel(kt.HyperModel):
         self.epoch_num = epoch_num
         self.telegram_bot_id = telegram_bot_id
         self.group_chat_id = group_chat_id
+        self.tunned_w2v_params = {}
+        self.tunned_model_params = {}
+
 
     def load_config(self, config_path):
         try:
@@ -150,8 +154,10 @@ class CustomHyperModel(kt.HyperModel):
 
         custom_model = None
 
+        self.tunned_w2v_params = w2v_params
+        hp_custom = {}
+        trainable_embedding = hp.Boolean("trainable_embedding", default=True)
         if self.model_name == "CustomModel_0":
-            hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = CustomModel_0(
@@ -214,11 +220,11 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
+                trainable_embedding = trainable_embedding,
             )
         elif self.model_name == "CustomModel_1":
-            hp_custom = {}
             print(hp_custom)
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
@@ -263,11 +269,11 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
+                trainable_embedding=trainable_embedding
             )
         elif self.model_name == "CustomModel_2":
-            hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = CustomModel_2(
@@ -306,11 +312,11 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
+                trainable_embedding=trainable_embedding
             )
         elif self.model_name == "CustomModel_3":
-            hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = CustomModel_3(
@@ -352,11 +358,11 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
+                trainable_embedding=trainable_embedding
             )
         elif self.model_name == "CZhouLSTMCNN":
-            hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = CZhouLSTMCNNModel(
@@ -429,11 +435,10 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
             )
         elif self.model_name == "KimCNN":
-            hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = KimCNNModel(
@@ -465,11 +470,10 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
             )
         elif self.model_name == "PZhouLSTMCNN":
-            hp_custom = {}
             for key, value in self.model_config.items():
                 hp_custom[value.get("name")] = self._get_hp_value(hp, value)
             custom_model = PZhouLSTMCNNModel(
@@ -495,7 +499,7 @@ class CustomHyperModel(kt.HyperModel):
                 dense_attributes_3=DenseAttribute(
                     units=3,
                     # dropout_rate=hp_custom["dense_3_dropout_rate"],
-                    activation=hp_custom["dense_3_activation"],
+                    activation="softmax",
                 ),
             )
             
@@ -504,7 +508,7 @@ class CustomHyperModel(kt.HyperModel):
 
         custom_model.build_model()
         custom_model.compile_model(learning_rate=hp_custom["lr"])
-        
+        self.tunned_model_params = hp_custom
         return custom_model.model
     
     # Định nghĩa hàm bất đồng bộ gửi file báo cáo qua Telegram
@@ -520,17 +524,15 @@ class CustomHyperModel(kt.HyperModel):
         
         with open(report_filename, "w") as file:
             file.write(f"Model Name: {self.model_name}\n")
-            file.write("Model Parameters:\n")
             if self.model_config is not None: # Check if not None
                 file.write('Model Parameters:\n')
-                for key, value in self.model_config.items():
-                    file.write(f"{key}: {value}\n")
+                for key, value in self.tunned_model_params.items(): # Lặp qua key-value pairs
+                    file.write(f"  {key}: {value}\n") # In ra cả key và value
 
-            file.write("\nWord2Vec Parameters:\n")
             if self.w2v_config is not None: # Check if not None
                 file.write('Word2Vec Parameters:\n')
-                for key, value in self.w2v_config.items():
-                    file.write(f"{key}: {value}\n")
+                for key, value in self.tunned_w2v_params.items(): # Lặp qua key-value pairs
+                    file.write(f"  {key}: {value}\n") # In ra cả key và value
         
         # Đặt EarlyStopping callback
         early_stop = EarlyStopping(

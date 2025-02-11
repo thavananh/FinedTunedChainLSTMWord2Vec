@@ -50,7 +50,8 @@ class CustomModel_3(BaseModel):
         dropout_features=0.0,
         dropout_combine=0.0,
         dropout_attention_pooled=0.0,
-        attention_weight_activation='sigmoid'
+        attention_weight_activation="sigmoid",
+        trainable_embedding=False,
     ):
         self.data_vocab_size = data_vocab_size
         self.embedding_matrix = embedding_matrix
@@ -71,6 +72,7 @@ class CustomModel_3(BaseModel):
         self.dense_attributes_1 = dense_attributes_1
         self.dense_attributes_3 = dense_attributes_3
         self.attention_weight_activation = attention_weight_activation
+        self.trainable_embedding = trainable_embedding
 
     def build_model(self):
         input_layer = Input(shape=(self.input_length,))
@@ -79,7 +81,7 @@ class CustomModel_3(BaseModel):
             output_dim=self.embedding_output_dim,
             embeddings_initializer=self.initializer,
             weights=[self.embedding_matrix],
-            trainable=False,
+            trainable=self.trainable_embedding,
         )(input_layer)
         x = Dropout(self.dropout_features)(x)
         # Convolutional Path
@@ -98,10 +100,13 @@ class CustomModel_3(BaseModel):
         cnn = cnn_block_2(cnn)
 
         # Recurrent Path
-        lstm_block_1 = LSTMBlock(units=self.lstm_attributes_1.units, dropout_rate=self.lstm_attributes_1.dropout_rate)
+        lstm_block_1 = LSTMBlock(
+            units=self.lstm_attributes_1.units,
+            dropout_rate=self.lstm_attributes_1.dropout_rate,
+        )
 
         lstm = lstm_block_1(cnn)
-        
+
         # Self-Attention Layer
         multi_head_attention_block = MultiHeadAttentionBlock(
             num_heads=self.multi_head_attention_attributes.num_heads,
@@ -110,23 +115,27 @@ class CustomModel_3(BaseModel):
         )
         attention = multi_head_attention_block(lstm)
 
-        attention_weights = Dense(1, activation=self.attention_weight_activation)(attention)  # Learnable attention weights
-        attention_pooled = ReduceSumLayer(axis=1)(attention * attention_weights)  # Use custom layer
+        attention_weights = Dense(1, activation=self.attention_weight_activation)(
+            attention
+        )  # Learnable attention weights
+        attention_pooled = ReduceSumLayer(axis=1)(
+            attention * attention_weights
+        )  # Use custom layer
         attention_pooled = Dropout(self.dropout_attention_pooled)(attention_pooled)
 
-        cnn_pooled = GlobalMaxPooling1D()(cnn)         
+        cnn_pooled = GlobalMaxPooling1D()(cnn)
 
         # Concatenate the pooled features
         combine_feature = Concatenate()([cnn_pooled, attention_pooled])
         combine_feature = LayerNormalization()(combine_feature)
-        combine_feature = Dropout(self.dropout_combine)(combine_feature)  
-        
+        combine_feature = Dropout(self.dropout_combine)(combine_feature)
+
         dense_block_1 = DenseBlock(
             units=self.dense_attributes_1.units,
             dropout_rate=self.dense_attributes_1.dropout_rate,
-            activation=self.dense_attributes_1.activation
+            activation=self.dense_attributes_1.activation,
         )
-        
+
         dense_block_3 = DenseBlock(
             units=3,
             dropout_rate=self.dense_attributes_3.dropout_rate,

@@ -52,6 +52,7 @@ class CustomModel_2(BaseModel):
         dense_attributes_3=DenseAttribute(3, activation="softmax"),
         dropout_features=0.0,
         dropout_combine=0.0,
+        trainable_embedding = False
     ):
         self.data_vocab_size = data_vocab_size
         self.embedding_matrix = embedding_matrix
@@ -71,6 +72,7 @@ class CustomModel_2(BaseModel):
         self.dense_attributes_1 = dense_attributes_1
         self.dense_attributes_2 = dense_attributes_2
         self.dense_attributes_3 = dense_attributes_3
+        self.trainable_embedding = trainable_embedding
 
     def build_model(self):
         input_layer = Input(shape=(self.input_length,))
@@ -79,7 +81,7 @@ class CustomModel_2(BaseModel):
             output_dim=self.embedding_output_dim,
             embeddings_initializer=self.initializer,
             weights=[self.embedding_matrix],
-            trainable=False,
+            trainable=self.trainable_embedding,
         )(input_layer)
         x = Dropout(self.dropout_features)(x)
         # Bidirectional LSTM
