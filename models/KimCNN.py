@@ -37,7 +37,6 @@ from sklearn.metrics import (
 import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.callbacks import TensorBoard
-from torch import dropout
 from base.BaseModel import BaseModel  # Quan trọng: Import BaseModel
 from utils.Attribute import *
 from utils.Block import *
