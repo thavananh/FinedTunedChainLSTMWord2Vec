@@ -108,6 +108,15 @@ def main():
         "--test_path", type=str, required=True, help="Testing data path"
     )
     parser.add_argument(
+        "--train_aug_path", type=str, required=True, help="Training augmented data path"
+    )
+    parser.add_argument(
+        "--dev_aug_path", type=str, required=True, help="Development augmented data path"
+    )
+    parser.add_argument(
+        "--test_aug_path", type=str, required=True, help="Testing augmented data path"
+    )
+    parser.add_argument(
         "--stopwords_path", type=str, required=True, help="Stopwords data path"
     )
     parser.add_argument(
@@ -123,12 +132,15 @@ def main():
         "--telegram_group_id", type=str, required=True, help="Telegram group id"
     )
     parser.add_argument(
+        "--use_aug_data", action="store_true", help="Use augmented data"
+    )
+    parser.add_argument(
         "--use_dash", action="store_true", help="Use dash in preprocessor"
     )
     parser.add_argument(
         "--use_simple", action="store_true", help="Simple spliting text"
     )
-     
+    
 
 
     args = parser.parse_args()
@@ -149,7 +161,11 @@ def main():
     print(f'Packages: {os.system("pip list")}')
 
     # Nạp dữ liệu
-    data_loader = DataLoader(args.train_path, args.dev_path, args.test_path)
+    if args.use_aug_data:
+        data_loader = DataLoader(args.train_aug_path, args.dev_aug_path, args.test_aug_path)
+    else:
+        data_loader = DataLoader(args.train_path, args.dev_path, args.test_path)
+        
     data_loader.load_data()
     loader = data_loader.get_processed_data()
 

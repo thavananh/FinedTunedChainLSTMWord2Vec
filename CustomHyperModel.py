@@ -479,7 +479,7 @@ class CustomHyperModel(kt.HyperModel):
                 data_vocab_size=data_vocab_size,
                 embedding_matrix=embedding_matrix,
                 input_length=self.input_length,
-                dropout_combine=hp_custom["dropout_combine"],
+                
                 dropout_features=hp_custom["dropout_features"],
                 cnn_2d_attribute_1=Cnn2DAttribute(
                     filter_size=hp_custom["cnn_2d_1_filter_size"],

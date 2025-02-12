@@ -92,11 +92,14 @@ class KimCNNModel(BaseModel):
 
         x_1 = Dropout(self.dropout_features)(x_1)
         
-        x_stacked = tf.stack([x, x_1], axis=1)
+        x = Reshape((self.input_length, self.embedding_output_dim, 1))(x)
 
-        conv2d_input = Reshape((self.input_length, self.embedding_output_dim, 1))(
-            x_stacked
-        )
+        # Similarly for x_1
+        x_1 = Reshape((self.input_length, self.embedding_output_dim, 1))(x_1)
+
+        # Now x and x_1 have the shape (batch_size, input_length, embedding_dim, 1) and can be fed to Conv2D
+        x_concat = tf.keras.layers.Concatenate(axis=-1)([x, x_1])
+
 
         conv2d_block_1 = Conv2DBlock(
             filters=self.cnn_2d_attribute_1.filter_size, kernel_size=self.cnn_2d_attribute_1.kernel_size, activation=self.cnn_2d_attribute_1.activation, padding=self.cnn_2d_attribute_1.padding
@@ -105,7 +108,7 @@ class KimCNNModel(BaseModel):
             filters=self.cnn_2d_attribute_2.filter_size, kernel_size=self.cnn_2d_attribute_2.kernel_size, activation=self.cnn_2d_attribute_2.activation, padding=self.cnn_2d_attribute_2.padding
         )
 
-        cnn_2d = conv2d_block_1(conv2d_input)
+        cnn_2d = conv2d_block_1(x_concat)
         cnn_2d = conv2d_block_2(cnn_2d)
         cnn_2d_pooled = GlobalMaxPooling2D()(cnn_2d)
 

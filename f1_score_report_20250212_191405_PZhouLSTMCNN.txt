@@ -1,0 +1,21 @@
+Model Name: PZhouLSTMCNN
+Model Parameters:
+  lr: 0.0001484290335612563
+  batch_size: 64
+  dropout_features: 0.30000000000000004
+  lstm_1_units: 384
+  lstm_1_dropout_rate: 0.30000000000000004
+  cnn_2d_1_filter_size: 224
+  cnn_2d_1_kernel_size_height: 5
+  cnn_2d_1_kernel_size_width: 5
+  cnn_2d_1_padding: same
+  cnn_2d_1_activation: silu
+  dense_3_activation: log_softmax
+Word2Vec Parameters:
+  sg: 0
+  vector_size: 200
+  window: 7
+  min_count: 10
+  negative: 5
+  sample: 0.00013066377367869326
+  epochs: 20

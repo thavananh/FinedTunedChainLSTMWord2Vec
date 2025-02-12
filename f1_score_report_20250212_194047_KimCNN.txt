@@ -1,0 +1,24 @@
+Model Name: KimCNN
+Model Parameters:
+  lr: 0.00013916594534920017
+  batch_size: 32
+  dropout_features: 0.0
+  cnn_2d_1_filter_size: 224
+  cnn_2d_1_padding: same
+  cnn_2d_1_activation: silu
+  cnn_2d_2_filter_size: 64
+  cnn_2d_1_kernel_size_height: 3
+  cnn_2d_1_kernel_size_width: 4
+  cnn_2d_2_padding: same
+  cnn_2d_2_activation: silu
+  cnn_2d_2_kernel_size_height: 3
+  cnn_2d_2_kernel_size_width: 2
+  dense_3_activation: log_softmax
+Word2Vec Parameters:
+  sg: 1
+  vector_size: 300
+  window: 5
+  min_count: 2
+  negative: 15
+  sample: 0.00046894514559489895
+  epochs: 20

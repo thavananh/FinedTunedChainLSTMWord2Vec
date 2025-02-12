@@ -74,16 +74,12 @@ class PZhouLSTMCNNModel(BaseModel):
             units=self.lstm_attributes_1.units,
             dropout_rate=self.lstm_attributes_1.dropout_rate,
         )
-
         lstm = lstm_block_1(x)
 
-        blstm_output_reshaped = tf.reshape(
-            lstm, shape=[-1, tf.shape(lstm)[1], 2, self.lstm_attributes_1.units]
-        )  # for reduce sum
-        conv_input = tf.reduce_sum(blstm_output_reshaped, axis=2)  # for reduce sum
-        conv_input_expanded = tf.expand_dims(
-            conv_input, axis=-1
-        )  # Add channel dimension
+        # Reshape LSTM output for CNN input - Correction Attempt 2
+        blstm_output_reshaped = tf.keras.layers.Reshape(
+            target_shape=(self.input_length, self.lstm_attributes_1.units, 1)
+        )(lstm)
 
         conv2d_block_1 = Conv2DBlock(
             filters=self.cnn_2d_attribute_1.filter_size,
@@ -91,14 +87,14 @@ class PZhouLSTMCNNModel(BaseModel):
             activation=self.cnn_2d_attribute_1.activation,
             padding=self.cnn_2d_attribute_1.padding,
         )
+        cnn_2d = conv2d_block_1(blstm_output_reshaped)
 
-        cnn_2d = conv2d_block_1(conv_input_expanded)
-        flatten_output = layers.Flatten()(cnn_2d)
+        flatten_output = tf.keras.layers.Flatten()(cnn_2d)
 
         dense_block_3 = DenseBlock(
-            units=self.dense_attributes_3.units,
+            units=3,
             dropout_rate=self.dense_attributes_3.dropout_rate,
-            activation=self.dense_attributes_3.activation,
+            activation="softmax",
         )
         output = dense_block_3(flatten_output)
 

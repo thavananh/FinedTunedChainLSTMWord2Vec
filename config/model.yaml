@@ -1038,11 +1038,19 @@ PZhouLSTMCNN:
     step: 32
     name: cnn_2d_1_filter_size
 
-  cnn_2d_1_kernel_size:
+  cnn_2d_1_kernel_size_height:
     type: int
-    range: [2, 5] # Changed range to be more suitable for 2D kernels
+    range: [2, 5]
     step: 1
-    name: cnn_2d_1_kernel_size
+    name: cnn_2d_1_kernel_size_height
+
+
+  cnn_2d_1_kernel_size_width:
+    type: int
+    range: [2, 5]
+    step: 1
+    name: cnn_2d_1_kernel_size_width
+
 
   cnn_2d_1_padding:
     type: choice
@@ -1062,7 +1070,7 @@ PZhouLSTMCNN:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 Word2Vec:
