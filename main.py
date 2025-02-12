@@ -128,9 +128,7 @@ def main():
     parser.add_argument(
         "--use_simple", action="store_true", help="Simple spliting text"
     )
-    parser.add_argument(
-        ""
-    )
+     
 
 
     args = parser.parse_args()
