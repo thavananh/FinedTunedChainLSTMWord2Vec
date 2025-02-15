@@ -366,7 +366,7 @@ class VietnameseTextPreprocessor:
             "hhhhhhhhhhhhhhhhhhhhhhh",
             "betweenness",'các em', 'chúng em', 'tụi em', 'các bạn', 'tụi em', 'sinh_viên', 'là', 'và', 'thì', 'vì', 'mà', 'của', 'khi', 'như', 'lại', 'đó', 'đây', 'kia', 'ấy', 'sẽ', 'mình', 'nếu', 'vậy', 'rồi', 'với', 'bởi', 'mà', 'ấy', 'kia', 'sẽ', 'đó', 'dù', 'tuy','sinh viên', 'học sinh', 'giáo viên', 'giảng viên', 'cc', 'tma'
         ]
-        self.list_rare_words = [
+        self.list_rare_words = [ # chi so tf_idf
             "fraction",
             "altera",
             "quad",
