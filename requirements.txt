@@ -1,5 +1,0 @@
-tensorflow[and-cuda]
-keras-tuner
-underthesea
-pyvi
-loky
