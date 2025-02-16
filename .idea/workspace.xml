@@ -1,7 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
-    <list default="true" id="edbc4f63-d4c0-4008-86bf-37426bf116d1" name="Changes" comment="" />
+    <list default="true" id="edbc4f63-d4c0-4008-86bf-37426bf116d1" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/hyper_tuning/sentiment_analysis/oracle.json" beforeDir="false" afterPath="$PROJECT_DIR$/hyper_tuning/sentiment_analysis/oracle.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hyper_tuning/sentiment_analysis/trial_0000/trial.json" beforeDir="false" afterPath="$PROJECT_DIR$/hyper_tuning/sentiment_analysis/trial_0000/trial.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mc_nckh_uit_vsfc.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/mc_nckh_uit_vsfc.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_cbow.bin" beforeDir="false" afterPath="$PROJECT_DIR$/model_cbow.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_cbow.word2vec" beforeDir="false" afterPath="$PROJECT_DIR$/model_cbow.word2vec" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_sg.bin" beforeDir="false" afterPath="$PROJECT_DIR$/model_sg.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/model_sg.word2vec" beforeDir="false" afterPath="$PROJECT_DIR$/model_sg.word2vec" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/tokenizer_data.pkl" beforeDir="false" afterPath="$PROJECT_DIR$/tokenizer_data.pkl" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -10,15 +23,25 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 0
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 0
+}</component>
   <component name="ProjectId" id="2sBVp0OHcWWpA2ABnohQfwT1dXU" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
+    "last_opened_file_path": "/run/media/duycute/Windows-DATA/MachineLearning",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
     "vue.rearranger.settings.migration": "true"
   }
@@ -40,7 +63,11 @@
       <option name="presentableId" value="Default" />
       <updated>1737929133911</updated>
       <workItem from="1737929135069" duration="2000" />
+      <workItem from="1739615603306" duration="3182000" />
     </task>
     <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
   </component>
 </project>

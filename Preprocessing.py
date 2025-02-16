@@ -965,7 +965,7 @@ class VietnameseTextPreprocessor:
         text = unicodedata.normalize('NFKC', str(text)).lower()
         text = text_normalize(text) 
         text = text.translate(str.maketrans('', '', string.punctuation)) # xoa dau cau
-        
+        text = re.sub(r'[!"#$%&()*+,\-./:;<=>?@\[\\\]^`{|}~\t\n]', '', text)
         # Thay thế từ ngữ theo mapping_dict
         for original, replacement in self.mapping_dict.items():
             text = re.sub(r'\b' + re.escape(original) + r'\b', replacement, text)

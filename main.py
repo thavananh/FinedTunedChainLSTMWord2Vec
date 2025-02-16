@@ -160,9 +160,13 @@ def main():
 
     print(f'Packages: {os.system("pip list")}')
 
+    model_cbow_name = "model_cbow"
+    model_sg_name = "model_sg"
     # Nạp dữ liệu
     if args.use_aug_data:
         data_loader = DataLoader(args.train_aug_path, args.dev_aug_path, args.test_aug_path)
+        model_cbow_name += "_aug"
+        model_sg_name += "_aug"
     else:
         data_loader = DataLoader(args.train_path, args.dev_path, args.test_path)
         
@@ -227,12 +231,12 @@ def main():
 
     model_cbow = Word2VecModel(sg=0)
     model_cbow.train(train_text_tokens_from_sent, epochs=15)
-    model_cbow.save("model_cbow")
+    model_cbow.save(model_cbow_name)
 
     print("\nTraining Skip-Gram model...")
     model_sg = Word2VecModel(sg=1)
     model_sg.train(train_text_tokens_from_sent, epochs=15)
-    model_sg.save("model_sg")
+    model_sg.save(model_sg_name)
 
     print(model_sg.get_vocab_dict())
 
