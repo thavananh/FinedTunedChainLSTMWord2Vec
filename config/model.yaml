@@ -32,14 +32,9 @@ CustomModel_0:
 
   cnn_1_kernel_size:
     type: int
-    range: [1, 4]
+    range: [1, 5]
     step: 1
     name: cnn_1_kernel_size
-
-  cnn_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_1_padding
 
   cnn_1_activation:
     type: choice
@@ -60,14 +55,9 @@ CustomModel_0:
 
   cnn_2_kernel_size:
     type: int
-    range: [1, 4]
+    range: [1, 5]
     step: 1
     name: cnn_2_kernel_size
-
-  cnn_2_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2_padding
 
   cnn_2_activation:
     type: choice
@@ -88,14 +78,9 @@ CustomModel_0:
 
   cnn_3_kernel_size:
     type: int
-    range: [1, 4]
+    range: [1, 5]
     step: 1
     name: cnn_3_kernel_size
-
-  cnn_3_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_3_padding
 
   cnn_3_activation:
     type: choice
@@ -116,14 +101,9 @@ CustomModel_0:
 
   cnn_4_kernel_size:
     type: int
-    range: [1, 4]
+    range: [1, 5]
     step: 1
     name: cnn_4_kernel_size
-
-  cnn_4_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_4_padding
 
   cnn_4_activation:
     type: choice
@@ -223,7 +203,7 @@ CustomModel_0:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 CustomModel_1:
@@ -261,14 +241,9 @@ CustomModel_1:
 
   cnn_1_kernel_size:
     type: int
-    range: [1, 4]
+    range: [1, 5]
     step: 1
     name: cnn_1_kernel_size
-
-  cnn_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_1_padding
 
   cnn_1_activation:
     type: choice
@@ -293,11 +268,6 @@ CustomModel_1:
     range: [1, 4]
     step: 1
     name: cnn_2_kernel_size
-
-  cnn_2_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2_padding
 
   cnn_2_activation:
     type: choice
@@ -380,7 +350,7 @@ CustomModel_1:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 CustomModel_2:
@@ -506,7 +476,7 @@ CustomModel_2:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 CustomModel_3:
@@ -558,11 +528,6 @@ CustomModel_3:
     step: 1
     name: cnn_1_kernel_size
 
-  cnn_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_1_padding
-
   cnn_1_activation:
     type: choice
     options: ['silu']
@@ -585,11 +550,6 @@ CustomModel_3:
     range: [1, 4]
     step: 1
     name: cnn_2_kernel_size
-
-  cnn_2_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2_padding
 
   cnn_2_activation:
     type: choice
@@ -660,7 +620,7 @@ CustomModel_3:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 CZhouLSTMCNN:
@@ -701,11 +661,6 @@ CZhouLSTMCNN:
     step: 1
     name: cnn_1_kernel_size
 
-  cnn_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_1_padding
-
   cnn_1_activation:
     type: choice
     options: ['silu']
@@ -729,10 +684,6 @@ CZhouLSTMCNN:
     step: 1
     name: cnn_2_kernel_size
 
-  cnn_2_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2_padding
 
   cnn_2_activation:
     type: choice
@@ -757,10 +708,6 @@ CZhouLSTMCNN:
     step: 1
     name: cnn_3_kernel_size
 
-  cnn_3_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_3_padding
 
   cnn_3_activation:
     type: choice
@@ -784,11 +731,6 @@ CZhouLSTMCNN:
     range: [1, 4]
     step: 1
     name: cnn_4_kernel_size
-
-  cnn_4_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_4_padding
 
   cnn_4_activation:
     type: choice
@@ -844,11 +786,6 @@ CZhouLSTMCNN:
     step: 1
     name: cnn_2d_1_kernel_size_width
 
-  cnn_2d_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2d_1_padding
-
   cnn_2d_1_activation:
     type: choice
     options: ['silu']
@@ -870,11 +807,6 @@ CZhouLSTMCNN:
     range: [2, 5]
     step: 1
     name: cnn_2d_2_kernel_size_width
-
-  cnn_2d_2_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2d_2_padding
 
   cnn_2d_2_activation:
     type: choice
@@ -906,7 +838,7 @@ CZhouLSTMCNN:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 
@@ -936,11 +868,6 @@ KimCNN:
     step: 32
     name: cnn_2d_1_filter_size
 
-  cnn_2d_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2d_1_padding
-
   cnn_2d_1_activation:
     type: choice
     options: ['silu']
@@ -962,11 +889,6 @@ KimCNN:
     range: [2, 5]
     step: 1
     name: cnn_2d_1_kernel_size_width
-
-  cnn_2d_2_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2d_2_padding
 
   cnn_2d_2_activation:
     type: choice
@@ -995,7 +917,7 @@ KimCNN:
 
   dense_3_activation:
     type: choice
-    options: ['softmax', 'log_softmax']
+    options: ['softmax']
     name: dense_3_activation
 
 
@@ -1050,12 +972,6 @@ PZhouLSTMCNN:
     range: [2, 5]
     step: 1
     name: cnn_2d_1_kernel_size_width
-
-
-  cnn_2d_1_padding:
-    type: choice
-    options: ['valid', 'same']
-    name: cnn_2d_1_padding
 
   cnn_2d_1_activation:
     type: choice
