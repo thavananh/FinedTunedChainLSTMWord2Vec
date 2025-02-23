@@ -136,7 +136,7 @@ class CustomHyperModel(kt.HyperModel):
         w2v_model.train(
             self.w2v_corpus,
             total_examples=len(self.w2v_corpus),
-            epochs=w2v_params.get("epochs", 30),  # Use get with default
+            epochs=w2v_params.get("epochs", 20),  # Use get with default
         )
 
         # Generate Embedding Matrix

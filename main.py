@@ -141,10 +141,7 @@ def main():
         "--use_simple", action="store_true", help="Simple spliting text"
     )
     
-
-
     args = parser.parse_args()
-
     print("User's Train path:", args.train_path)
     print("User's Dev path:", args.dev_path)
     print("User's Test path:", args.test_path)
@@ -155,8 +152,6 @@ def main():
     print("User's Telegram group id: ", args.telegram_group_id)
     print("User's Use dash:", args.use_dash)
     print("User's Use simple:", args.use_simple)
-
-    # Cài đặt các gói cần thiết
 
     print(f'Packages: {os.system("pip list")}')
 
@@ -212,11 +207,18 @@ def main():
     print("top 5 dev_text_preprocessed:", dev_text_preprocessed[:5])
 
     # Lưu dữ liệu đã xử lý
+    processed_train_file_name = "processed_train"
+    processed_test_file_name = "processed_test"
+    processed_dev_file_name = "processed_dev"
+    if args.use_aug_data:
+        processed_train_file_name += "_aug"
+        processed_test_file_name += "_aug"
+        processed_dev_file_name += "_aug"
     save_to_csv(
-        train_text_preprocessed, unpreprocessed_label_train, "processed_train.csv"
+        train_text_preprocessed, unpreprocessed_label_train, f"{processed_train_file_name}.csv"
     )
-    save_to_csv(test_text_preprocessed, unpreprocessed_label_test, "processed_test.csv")
-    save_to_csv(dev_text_preprocessed, unpreprocessed_label_dev, "processed_dev.csv")
+    save_to_csv(test_text_preprocessed, unpreprocessed_label_test, f"{processed_test_file_name}.csv")
+    save_to_csv(dev_text_preprocessed, unpreprocessed_label_dev, f"{processed_dev_file_name}.csv")
     print("Đã lưu các tập dữ liệu đã xử lý vào CSV.")
 
     # Huấn luyện mô hình Word2Vec

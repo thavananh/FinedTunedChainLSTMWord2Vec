@@ -1,35 +1,36 @@
 from os import read
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
-# train_data_aug = pd.read_csv('UIT-VSFC_train_augmented.csv')
-# test_data_aug = pd.read_csv('UIT-VSFC_test_augmented.csv')
-# dev_data_aug = pd.read_csv('UIT-VSFC_dev_augmented.csv')
-
-# # Xóa các hàng mà cột 'sents' bị thiếu dữ liệu (NaN)
-# train_data_aug.dropna(subset=['sents'], inplace=True)
-# test_data_aug.dropna(subset=['sents'], inplace=True)
-# dev_data_aug.dropna(subset=['sents'], inplace=True)
-
-# train_data_aug.to_excel('UIT-VSFC_train_augmented.xlsx')
-# test_data_aug.to_excel('UIT-VSFC_test_augmented.xlsx')
-# dev_data_aug.to_excel('UIT-VSFC_dev_augmented.xlsx')
-
-# train_data_aug.info()
-# test_data_aug.info()
-# dev_data_aug.info()
+from imblearn.over_sampling import RandomOverSampler
 
 
-df = pd.read_excel('data_20k.xlsx')
+df = pd.read_excel('data_16k.xlsx')
 df.info()
 
-train_df, test_df = train_test_split(df, test_size=0.2, stratify=df["label"], random_state=42)
-train_df, val_df = train_test_split(train_df, test_size=0.1, stratify=train_df["label"], random_state=42)
+train_df, test_df = train_test_split(df, test_size=0.2, stratify=df["label"], random_state=2004)
+train_df, val_df = train_test_split(train_df, test_size=0.1, stratify=train_df["label"], random_state=2004)
 
-train_df.to_csv('train_aug_merge_old_data.csv', index=False)
-test_df.to_csv('test_aug_merge_old_data.csv', index=False)
-val_df.to_csv('val_aug_merge_old_data.csv', index=False)
+train_df.to_csv('new_train_16k.csv', index=False)
+test_df.to_csv('new_test_16k.csv', index=False)
+val_df.to_csv('new_dev_16k.csv', index=False)
 
 train_df.info()
 test_df.info()
 val_df.info()
+
+# Separate features and labels
+X_train = train_df.drop(columns=["label"])
+y_train = train_df["label"]
+
+# Apply Random Over-Sampling
+ros = RandomOverSampler(random_state=2004)
+X_resampled, y_resampled = ros.fit_resample(X_train, y_train)
+
+# Convert back to DataFrame
+train_df_resampled = pd.DataFrame(X_resampled, columns=X_train.columns)
+train_df_resampled["label"] = y_resampled  # Add the label column back
+
+# Save the new training set
+train_df_resampled.to_csv('balanced_train_16k.csv', index=False)
+
+train_df_resampled.info()
